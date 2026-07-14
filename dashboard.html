@@ -877,21 +877,21 @@ function logout(){
       </div>
 
       <!-- SERVICE CARDS -->
-      <div class="sec-head">
+      <div class="sec-head" id="section-svc-head">
         <div class="sec-title"><i class="fas fa-th" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Jenis Layanan</div>
         <a class="see-all" onclick="switchTab('layanan',null)">Lihat Semua →</a>
       </div>
       <div class="svc-grid" id="svc-grid"></div>
 
       <!-- BIDANG CARDS -->
-      <div class="sec-head">
+      <div class="sec-head" id="section-bidang-head">
         <div class="sec-title"><i class="fas fa-sitemap" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Bidang</div>
         <a class="see-all" onclick="switchTab('bidang',null)">Lihat Detail →</a>
       </div>
       <div class="bidang-grid" id="bidang-grid"></div>
 
       <!-- TREND + DONUT -->
-      <div class="g2">
+      <div class="g2" id="section-trend-donut">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-chart-line" style="color:var(--primary-light);margin-right:6px;"></i>Tren 1 Bulan Terakhir</div>
@@ -915,7 +915,7 @@ function logout(){
       </div>
 
       <!-- BAR + TOP PEMOHON -->
-      <div class="g3">
+      <div class="g3" id="section-bar-top">
         <div class="card neu-card" style="grid-column:span 2;">
           <div class="sec-title"><i class="fas fa-chart-bar" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Bidang (Stacked)</div>
           <div class="chart-sm"><canvas id="barChart"></canvas></div>
@@ -927,7 +927,7 @@ function logout(){
       </div>
 
       <!-- BIAYA PER BIDANG -->
-      <div class="g2">
+      <div class="g2" id="section-biaya-bidang">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-wallet" style="color:#d97706;margin-right:6px;"></i>Biaya per Bidang</div>
@@ -942,7 +942,7 @@ function logout(){
       </div>
 
       <!-- LAMA PEMENUHAN KEBUTUHAN PER BIDANG (SPEEDOMETER) -->
-      <div class="card hud-panel">
+      <div class="card hud-panel" id="section-gauge">
         <div class="sec-head">
           <div class="sec-title"><i class="fas fa-tachometer-alt" style="color:#38bdf8;margin-right:6px;"></i>Lama Pemenuhan Kebutuhan per Bidang</div>
           <span style="font-size:11.5px;">Rata-rata hari kerja dari permintaan dibuat hingga Tanggal Selesai diisi (khusus status Selesai)</span>
@@ -951,7 +951,7 @@ function logout(){
       </div>
 
       <!-- KONSUMSI KHUSUS PER BIDANG -->
-      <div class="g2">
+      <div class="g2" id="section-konsumsi-khusus">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-utensils" style="color:#2563eb;margin-right:6px;"></i>Permintaan Konsumsi Khusus per Bidang</div>
@@ -966,7 +966,7 @@ function logout(){
       </div>
 
       <!-- KONSUMSI KHUSUS - BIAYA PER BIDANG -->
-      <div class="g2">
+      <div class="g2" id="section-konsumsi-khusus-biaya">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-money-bill-wave" style="color:#2563eb;margin-right:6px;"></i>Biaya Konsumsi Khusus per Bidang</div>
@@ -2362,7 +2362,8 @@ const AVATAR_COLORS = ['#0070c0','#ed7d31','#002060','#ff0000','#00b050','#ffd96
 // User bidang (mis. login sebagai HAR) hanya melihat data & chart bidangnya sendiri —
 // bidang lain tidak ditampilkan sama sekali di chart perbandingan antar bidang.
 function visibleBidangConfig(){
-  if(isAdminUser()) return BIDANG_CONFIG;
+  // Admin dan Pegawai melihat semua bidang (pegawai dibatasi di level data/layanan)
+  if(isAdminUser() || isPegawai()) return BIDANG_CONFIG;
   const myBidang = window.AUTH_USER && window.AUTH_USER.bidang;
   return BIDANG_CONFIG.filter(c=>c.key===myBidang);
 }
@@ -2433,6 +2434,11 @@ function setActiveSidebarItem(sidebarItem){
 let __activeSidebarPage = null; // {type:'layanan'|'bidang', key:'...'}
 
 function openLayananFromSidebar(key, sidebarItem){
+  // Guard: Pegawai hanya boleh mengakses layanan yang diizinkan
+  if(isPegawai() && PEGAWAI_ALLOWED_LAYANAN.indexOf(key) === -1){
+    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
+    return;
+  }
   __activeSidebarPage = {type:'layanan', key};
   switchTab('single-detail', sidebarItem);
   renderLayananSinglePage(key);
@@ -2669,6 +2675,8 @@ function isAdminUser(){
   const u = window.AUTH_USER;
   const role = (u && u.role || '').toString().toLowerCase();
   const APPROVAL_ROLES_FULL_ACCESS = ['supervisor', 'senior_admin', 'manager'];
+  // pegawai bukan admin — filterRowsForUser akan menangani pembatasan layanan mereka
+  if(role === 'pegawai') return false;
   return isSuperAdmin() || !u.bidang || u.bidang === 'ALL'
     || APPROVAL_ROLES_FULL_ACCESS.indexOf(role) !== -1;
 }
@@ -2690,8 +2698,23 @@ function getUserRole(){
 function isSupervisor(){ return isSuperAdmin() || getUserRole()==='supervisor'; }
 function isSeniorAdmin(){ return isSuperAdmin() || getUserRole()==='senior_admin'; }
 function isManagerAdmin(){ return isSuperAdmin() || getUserRole()==='manager'; }
+
+// ── ROLE PEGAWAI ──
+// Role 'pegawai' hanya dapat melihat layanan tertentu saja (read-only terbatas).
+// Layanan yang diizinkan: Reimburse Biaya, ATK, Kendaraan, Ruang Meeting, Perbaikan Sipil.
+const PEGAWAI_ALLOWED_LAYANAN = ['Reimburse Biaya', 'ATK', 'Kendaraan', 'Ruang Meeting', 'Perbaikan Sipil'];
+function isPegawai(){ return getUserRole() === 'pegawai'; }
+
 function filterRowsForUser(rows){
   if(isAdminUser()) return rows;
+  // Pegawai: hanya melihat permintaan milik sendiri + layanan yang diizinkan
+  if(isPegawai()){
+    const myName = (window.AUTH_USER && (window.AUTH_USER.nama || window.AUTH_USER.username) || '').toLowerCase();
+    return rows.filter(r =>
+      PEGAWAI_ALLOWED_LAYANAN.indexOf(r['Jenis Layanan']) !== -1 &&
+      (r['Nama Pemohon'] || '').toLowerCase() === myName
+    );
+  }
   const bid = window.AUTH_USER.bidang;
   return rows.filter(r => r['Bidang'] === bid);
 }
@@ -5546,7 +5569,8 @@ function initAuthUI(){
   const roleTagMap = {
     supervisor: 'Supervisor Administrasi (akses penuh)',
     senior_admin: 'Supervisor Senior Administrasi (akses penuh)',
-    manager: 'Manager Administrasi (akses penuh)'
+    manager: 'Manager Administrasi (akses penuh)',
+    pegawai: 'Pegawai'
   };
   const roleKey = getUserRole();
   document.getElementById('user-role').textContent =
@@ -5561,7 +5585,61 @@ function initAuthUI(){
       now.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   }
 
-  // Non-admin: hanya tampilkan menu bidangnya sendiri, sembunyikan bidang lain
+  // ── Role PEGAWAI: batasi akses hanya ke layanan yang diizinkan ──
+  if(isPegawai()){
+    // Sembunyikan menu sidebar layanan yang TIDAK diizinkan
+    document.querySelectorAll('#grp-layanan .menu-item').forEach(btn => {
+      const onclk = btn.getAttribute('onclick') || '';
+      const match = onclk.match(/openLayananFromSidebar\('([^']+)'/);
+      if(match && PEGAWAI_ALLOWED_LAYANAN.indexOf(match[1]) === -1){
+        btn.style.display = 'none';
+      }
+    });
+    // Sembunyikan seluruh menu grup Bidang
+    const bidangMenuHeader = document.getElementById('bidang-menu-header');
+    if(bidangMenuHeader) bidangMenuHeader.closest('.menu-group').style.display = 'none';
+    // Sembunyikan tab Bidang di tab-nav
+    const tabBidang = document.getElementById('tab-btn-bidang');
+    if(tabBidang) tabBidang.style.display = 'none';
+    // Sembunyikan tombol konfigurasi Google Sheets dan export (hanya admin/bidang)
+    document.querySelectorAll('.icon-btn[onclick*="openGSConfig"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.export-btn').forEach(el => el.style.display = 'none');
+    // Sembunyikan period-bar (filter periode — tidak relevan untuk pegawai)
+    const periodBar = document.querySelector('.period-bar');
+    if(periodBar) periodBar.style.display = 'none';
+
+    // ── Sembunyikan semua section chart & data di panel-utama yang tidak relevan ──
+    const hideIds = [
+      'section-svc-head',            // Permintaan per Jenis Layanan (header)
+      'svc-grid',                    // Permintaan per Jenis Layanan (cards)
+      'section-bidang-head',         // Permintaan per Bidang (header)
+      'bidang-grid',                 // Permintaan per Bidang (cards)
+      'section-trend-donut',         // Tren + Donut Status
+      'section-bar-top',             // Bar Bidang Stacked + Top Pemohon
+      'section-biaya-bidang',        // Biaya per Bidang
+      'section-gauge',               // Lama Pemenuhan per Bidang (speedometer)
+      'section-konsumsi-khusus',     // Konsumsi Khusus per Bidang
+      'section-konsumsi-khusus-biaya', // Biaya Konsumsi Khusus per Bidang
+    ];
+    hideIds.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+
+    // Sembunyikan filter layanan yang tidak diizinkan di panel layanan (delayed)
+    setTimeout(function(){
+      document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(btn => {
+        const onclk = btn.getAttribute('onclick') || '';
+        const match = onclk.match(/filterLayanan\('([^']+)'/);
+        if(match && PEGAWAI_ALLOWED_LAYANAN.indexOf(match[1]) === -1){
+          btn.style.display = 'none';
+        }
+      });
+    }, 500);
+    return;
+  }
+
+  // Non-admin (bidang biasa): hanya tampilkan menu bidangnya sendiri, sembunyikan bidang lain
   if(!admin){
     document.querySelectorAll('#bidang-menu-items .menu-item').forEach(btn=>{
       if(btn.dataset.bidang !== u.bidang) btn.style.display = 'none';
