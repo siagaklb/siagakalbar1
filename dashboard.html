@@ -230,6 +230,20 @@
     .prio{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
     .prio.tinggi{background:#fee2e2;color:#991b1b;}
     .prio.sedang{background:#dbeafe;color:#1e40af;}
+    /* INDIKATOR DEADLINE — highlight baris + badge kecil di kolom Tanggal Dibutuhkan
+       kuning = H-1 menuju tanggal dibutuhkan, masih diproses
+       merah  = sudah lewat tanggal dibutuhkan, belum selesai
+       oranye = selesai tapi telat (Tgl Selesai > Tanggal Dibutuhkan) */
+    tr.dl-warning td{background:#fffbeb;}
+    tr.dl-warning:hover td{background:#fef3c7;}
+    tr.dl-danger td{background:#fef2f2;}
+    tr.dl-danger:hover td{background:#fee2e2;}
+    tr.dl-late td{background:#fff7ed;}
+    tr.dl-late:hover td{background:#ffedd5;}
+    .dl-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:5px;white-space:nowrap;vertical-align:middle;}
+    .dl-tag.dl-warning{background:#fef3c7;color:#92400e;}
+    .dl-tag.dl-danger{background:#fee2e2;color:#991b1b;}
+    .dl-tag.dl-late{background:#ffedd5;color:#9a3412;}
     .prio.rendah{background:#d1fae5;color:#065f46;}
 
     /* EDITABLE CELLS (khusus admin: Status / Tgl Selesai / PIC / Biaya) */
@@ -2696,6 +2710,58 @@ function parseTglID(str){
   return new Date(year, monthIdx, day);
 }
 
+// ── Indikator batas waktu (deadline) permintaan ──────────────────────────
+// Membandingkan 'Tanggal Dibutuhkan' terhadap hari ini (atau Tanggal Selesai
+// bila sudah selesai) dan mengembalikan status visual:
+//   null         -> aman, tidak perlu indikator
+//   'dl-warning' -> H-1 menuju tanggal dibutuhkan, status belum Selesai/Ditolak
+//   'dl-danger'  -> sudah lewat tanggal dibutuhkan, status belum Selesai/Ditolak
+//   'dl-late'    -> status Selesai, tapi Tanggal Selesai > Tanggal Dibutuhkan
+function getDeadlineInfo(r){
+  const status = r['Status']||'Menunggu';
+  if(status==='Ditolak') return null; // request ditolak tidak relevan dengan deadline
+
+  const tglButuh = parseTglID(r['Tanggal Dibutuhkan']);
+  if(!tglButuh) return null; // tidak ada tanggal dibutuhkan -> tidak bisa dihitung
+
+  // Normalisasi ke tengah malam supaya perbandingan berbasis hari (bukan jam)
+  tglButuh.setHours(0,0,0,0);
+
+  if(status==='Selesai'){
+    const tglSelesaiRaw = r['Tanggal Selesai'];
+    if(!tglSelesaiRaw) return null;
+    const tglSelesai = new Date(tglSelesaiRaw); // format input type=date -> yyyy-mm-dd
+    if(isNaN(tglSelesai.getTime())) return null;
+    tglSelesai.setHours(0,0,0,0);
+    if(tglSelesai.getTime() > tglButuh.getTime()){
+      const hari = Math.round((tglSelesai - tglButuh)/86400000);
+      return {cls:'dl-late', label:`Telat ${hari} hari`, icon:'fa-clock-rotate-left'};
+    }
+    return null; // selesai tepat waktu / lebih awal -> aman
+  }
+
+  // Belum selesai (Menunggu / Dalam Proses): bandingkan dengan hari ini
+  const today = new Date(); today.setHours(0,0,0,0);
+  const selisihHari = Math.round((tglButuh - today)/86400000);
+
+  if(selisihHari < 0){
+    return {cls:'dl-danger', label:`Lewat ${Math.abs(selisihHari)} hari`, icon:'fa-triangle-exclamation'};
+  }
+  if(selisihHari === 0){
+    return {cls:'dl-warning', label:'Jatuh tempo hari ini', icon:'fa-hourglass-half'};
+  }
+  if(selisihHari === 1){
+    return {cls:'dl-warning', label:'H-1', icon:'fa-hourglass-half'};
+  }
+  return null; // masih > H-1 -> aman, tidak ditandai
+}
+
+// Badge kecil untuk ditempel di kolom Tanggal Dibutuhkan
+function deadlineTagHTML(dl){
+  if(!dl) return '';
+  return `<span class="dl-tag ${dl.cls}"><i class="fas ${dl.icon}"></i>${dl.label}</span>`;
+}
+
 function populatePeriodYearOptions(rows){
   const yearSel = document.getElementById('period-year-select');
   if(!yearSel) return;
@@ -3424,6 +3490,8 @@ function renderTable(rows, tbodyId='req-tbody'){
     const rid = r['ID']||'';
     const tglSelesaiRaw = r['Tanggal Selesai']||'';
     const picRaw = r['PIC']||'';
+    const dl = getDeadlineInfo(r);
+    const rowClass = dl ? ` class="${dl.cls}"` : '';
 
     // Kolom Status: admin bisa ubah langsung via dropdown, user lain hanya melihat badge
     const statusCell = admin
@@ -3447,7 +3515,7 @@ function renderTable(rows, tbodyId='req-tbody'){
       ? `<div class="biaya-edit-wrap"><span class="biaya-prefix">Rp</span><input type="text" class="cell-edit-biaya" value="${biaya?Number(biaya).toLocaleString('id-ID'):''}" placeholder="0" oninput="formatBiayaLive(this)" onblur="commitBiayaEdit('${rid}',this)" onkeydown="if(event.key==='Enter'){this.blur();}"/></div>`
       : `<span class="biaya-tag"><i class="fas fa-tag"></i>${formatBiayaFull(biaya)}</span>`;
 
-    return `<tr>
+    return `<tr${rowClass}>
       <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}</td>
       <td><div class="rsvc">
         <div class="ricon" style="background:${svc.bg};"><i class="fas ${svc.icon}" style="color:${svc.color};"></i></div>
@@ -3458,7 +3526,7 @@ function renderTable(rows, tbodyId='req-tbody'){
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td>${biayaCell}</td>
       <td style="font-size:11.5px;color:var(--muted);">${r['Dibuat']||'–'}</td>
-      <td style="${tglDibutuhkanStyle}"><i class="fas fa-calendar-check" style="font-size:10px;margin-right:3px;"></i>${tglDibutuhkan}</td>
+      <td style="${tglDibutuhkanStyle}"><i class="fas fa-calendar-check" style="font-size:10px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
       <td>${statusCell}</td>
       <td>${tglSelesaiCell}</td>
       <td>${picCell}</td>
@@ -4836,8 +4904,10 @@ function renderSummaryRowsCompact(rows){
     const bid=BIDMAP[r['Bidang']]||{bg:'#64748b',light:'#f1f5f9'};
     const st=r['Status']||'Menunggu';
     const stClass=st==='Selesai'?'selesai':st==='Dalam Proses'?'proses':st==='Ditolak'?'ditolak':'menunggu';
-    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
+    const dl=getDeadlineInfo(r);
+    const rowClass=dl?` ${dl.cls}`:'';
+    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -4857,8 +4927,10 @@ function renderSummaryRowsBidangCompact(rows){
     const svc=SVCMAP[r['Jenis Layanan']]||{icon:'fa-question',bg:'#f1f5f9',color:'#64748b'};
     const st=r['Status']||'Menunggu';
     const stClass=st==='Selesai'?'selesai':st==='Dalam Proses'?'proses':st==='Ditolak'?'ditolak':'menunggu';
-    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
+    const dl=getDeadlineInfo(r);
+    const rowClass=dl?` ${dl.cls}`:'';
+    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -4886,14 +4958,16 @@ function renderSummaryRows(rows){
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
     const expandId=`expand-srl-${idx}`;
     const itemsHTML=renderItemsMini(r);
-    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+    const dl=getDeadlineInfo(r);
+    const rowClass=dl?` ${dl.cls}`:'';
+    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
       <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${tglDibuat}</td>
-      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}</td>
+      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
       <td style="font-size:11px;color:${tglSelesaiRaw?'var(--green)':'var(--muted)'};white-space:nowrap;font-weight:${tglSelesaiRaw?'600':'400'};">${tglSelesaiDisplay}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
       <td style="white-space:nowrap;"><button class="row-toggle-btn" onclick="event.stopPropagation();toggleItemsRow(this,'${expandId}')"><i class="fas fa-list" style="font-size:9px;margin-right:3px;"></i>Items</button></td>
@@ -4924,14 +4998,16 @@ function renderSummaryRowsBidang(rows){
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
     const expandId=`expand-srb-${idx}`;
     const itemsHTML=renderItemsMini(r);
-    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+    const dl=getDeadlineInfo(r);
+    const rowClass=dl?` ${dl.cls}`:'';
+    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
       <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${tglDibuat}</td>
-      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}</td>
+      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
       <td style="font-size:11px;color:${tglSelesaiRaw?'var(--green)':'var(--muted)'};white-space:nowrap;font-weight:${tglSelesaiRaw?'600':'400'};">${tglSelesaiDisplay}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
       <td style="white-space:nowrap;"><button class="row-toggle-btn" onclick="event.stopPropagation();toggleItemsRow(this,'${expandId}')"><i class="fas fa-list" style="font-size:9px;margin-right:3px;"></i>Items</button></td>
