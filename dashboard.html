@@ -631,7 +631,26 @@
 
     /* GS banner tetap hijau (semantik "terhubung"), hanya perhalus shadow */
     .gs-banner{box-shadow:0 8px 24px rgba(15,157,88,.25);}
-  </style>
+  
+    /* ── MODAL PENGATURAN AKUN ── */
+    .settings-modal{width:480px;max-width:96vw;max-height:90vh;overflow-y:auto;}
+    .settings-section{margin-bottom:20px;}
+    .settings-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+    .settings-field{margin-bottom:14px;}
+    .settings-field label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;}
+    .settings-field input,.settings-field select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;outline:none;transition:border-color .2s;}
+    .settings-field input:focus,.settings-field select:focus{border-color:var(--primary-light);}
+    .settings-field input[readonly]{background:#f8fafc;color:var(--muted);cursor:not-allowed;}
+    .settings-field .field-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+    .settings-pw-wrap{position:relative;}
+    .settings-pw-wrap input{padding-right:38px;}
+    .settings-pw-wrap .pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:0;}
+    .settings-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+    .settings-status{font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:12px;display:none;}
+    .settings-status.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+    .settings-status.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+    .settings-status.loading{display:block;background:#eff6ff;color:var(--primary-light);border:1px solid #bfdbfe;}
+</style>
 </head>
 <body>
 <canvas id="fx-bg" aria-hidden="true"></canvas>
@@ -750,7 +769,7 @@ function logout(){
         <button class="menu-item" onclick="window.open('form.html','_blank')"><i class="fas fa-link"></i>Form Publik</button>
         <button class="menu-item" id="menu-gs" onclick="openGSConfig()"><i class="fas fa-table"></i>Google Sheets</button>
         <button class="menu-item" onclick="switchTab('utama',this)"><i class="fas fa-bell"></i>Notifikasi</button>
-        <button class="menu-item" onclick="switchTab('utama',this)"><i class="fas fa-cog"></i>Pengaturan</button>
+        <button class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i>Pengaturan</button>
         <button class="menu-item" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i>Keluar</button>
       </div>
     </div>
@@ -1382,6 +1401,83 @@ function logout(){
       <button class="btn-cancel" onclick="closeGSConfig()">Batal</button>
       <button class="btn-cancel" onclick="loadData();closeGSConfig()">Muat Demo</button>
       <button class="btn-save" onclick="saveGSConfig()"><i class="fas fa-save"></i> Simpan & Hubungkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL PENGATURAN AKUN ══════════════════ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal settings-modal">
+    <h2><i class="fas fa-user-cog" style="color:var(--primary-light);margin-right:8px;"></i>Pengaturan Akun</h2>
+    <p class="sub" id="settings-sub">Perbarui informasi akun Anda. Perubahan langsung tersimpan ke Google Sheets.</p>
+
+    <div class="settings-section">
+      <div class="settings-section-title"><i class="fas fa-id-card" style="margin-right:5px;"></i>Informasi Pribadi</div>
+      <div class="settings-field">
+        <label>Username</label>
+        <input type="text" id="sett-username" readonly/>
+        <div class="field-hint">Username tidak dapat diubah.</div>
+      </div>
+      <div class="settings-field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="sett-nama" readonly/>
+        <div class="field-hint">Nama tidak dapat diubah melalui pengaturan ini.</div>
+      </div>
+      <div class="settings-field">
+        <label>Email</label>
+        <input type="email" id="sett-email" placeholder="email@perusahaan.com"/>
+      </div>
+      <div class="settings-field">
+        <label>No. Handphone</label>
+        <input type="tel" id="sett-telepon" placeholder="08xxxxxxxxxx"/>
+      </div>
+      <div class="settings-field">
+        <label>Bidang Asal</label>
+        <select id="sett-bidang">
+          <option value="">— Pilih Bidang —</option>
+          <option value="HAR">HAR — Pemeliharaan</option>
+          <option value="OPS">OPS — Operasi</option>
+          <option value="ENG">ENG — Engineering</option>
+          <option value="K3L">K3L — Keselamatan &amp; Lingkungan</option>
+          <option value="PBJ">PBJ — Pengadaan Barang &amp; Jasa</option>
+          <option value="ADM">ADM — Administrasi</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="settings-divider"/>
+
+    <div class="settings-section">
+      <div class="settings-section-title"><i class="fas fa-lock" style="margin-right:5px;"></i>Ubah Password</div>
+      <div class="settings-field">
+        <label>Password Lama</label>
+        <div class="settings-pw-wrap">
+          <input type="password" id="sett-pw-lama" placeholder="Masukkan password saat ini"/>
+          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-lama',this)"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="settings-field">
+        <label>Password Baru</label>
+        <div class="settings-pw-wrap">
+          <input type="password" id="sett-pw-baru" placeholder="Min. 6 karakter"/>
+          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-baru',this)"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="settings-field">
+        <label>Konfirmasi Password Baru</label>
+        <div class="settings-pw-wrap">
+          <input type="password" id="sett-pw-konfirm" placeholder="Ulangi password baru"/>
+          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-konfirm',this)"><i class="fas fa-eye"></i></button>
+        </div>
+        <div class="field-hint">Kosongkan jika tidak ingin mengubah password.</div>
+      </div>
+    </div>
+
+    <div class="settings-status" id="settings-status"></div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeSettings()">Batal</button>
+      <button class="btn-save" id="sett-save-btn" onclick="saveSettings()"><i class="fas fa-save"></i> Simpan Perubahan</button>
     </div>
   </div>
 </div>
@@ -2076,6 +2172,12 @@ function doPost(e) {
       return output;
     }
 
+    if (payload.action === 'updateUser') {
+      var result3 = processUpdateUser(payload);
+      output.setContent(JSON.stringify(result3));
+      return output;
+    }
+
     output.setContent(JSON.stringify({ success: false, error: 'Action tidak dikenal: ' + payload.action }));
     return output;
 
@@ -2289,6 +2391,77 @@ function login(username, password) {
   }};
 }
 
+
+// ══════════════════════════════════════════════════════════════════════
+// processUpdateUser — update Email, Telepon, Bidang, dan/atau Password
+// di sheet Users berdasarkan Username.
+// Payload: { action:'updateUser', username, email, telepon, bidang,
+//            oldPassword (opsional), newPassword (opsional) }
+// ══════════════════════════════════════════════════════════════════════
+function processUpdateUser(payload) {
+  try {
+    var ss    = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Users');
+    if (!sheet) return { success: false, error: 'Sheet "Users" tidak ditemukan' };
+
+    var data    = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var usernameCol = headers.indexOf('Username');
+    var passwordCol = headers.indexOf('Password');
+    var emailCol    = headers.indexOf('Email');
+    var teleponCol  = headers.indexOf('Telepon');
+    var bidangCol   = headers.indexOf('Bidang');
+
+    if (usernameCol === -1) return { success: false, error: 'Kolom Username tidak ditemukan di sheet Users' };
+
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][usernameCol]).trim().toLowerCase() === String(payload.username).trim().toLowerCase()) {
+        rowIndex = i; break;
+      }
+    }
+    if (rowIndex === -1) return { success: false, error: 'User tidak ditemukan' };
+
+    // Validasi password lama jika ingin ganti password
+    if (payload.newPassword) {
+      if (!payload.oldPassword) return { success: false, error: 'Password lama wajib diisi untuk mengganti password' };
+      if (passwordCol === -1) return { success: false, error: 'Kolom Password tidak ditemukan di sheet Users' };
+      var currentPw = String(data[rowIndex][passwordCol]).trim();
+      if (currentPw !== String(payload.oldPassword).trim()) {
+        return { success: false, error: 'Password lama tidak sesuai' };
+      }
+      sheet.getRange(rowIndex + 1, passwordCol + 1).setValue(payload.newPassword);
+    }
+
+    // Update Email
+    if (emailCol !== -1 && typeof payload.email !== 'undefined') {
+      sheet.getRange(rowIndex + 1, emailCol + 1).setValue(payload.email || '');
+    } else if (typeof payload.email !== 'undefined' && emailCol === -1) {
+      // Kolom Email belum ada — tambahkan
+      var newCol = headers.length + 1;
+      sheet.getRange(1, newCol).setValue('Email');
+      sheet.getRange(rowIndex + 1, newCol).setValue(payload.email || '');
+    }
+
+    // Update Telepon
+    if (teleponCol !== -1 && typeof payload.telepon !== 'undefined') {
+      sheet.getRange(rowIndex + 1, teleponCol + 1).setValue(payload.telepon || '');
+    } else if (typeof payload.telepon !== 'undefined' && teleponCol === -1) {
+      var newCol2 = sheet.getLastColumn() + 1;
+      sheet.getRange(1, newCol2).setValue('Telepon');
+      sheet.getRange(rowIndex + 1, newCol2).setValue(payload.telepon || '');
+    }
+
+    // Update Bidang
+    if (bidangCol !== -1 && typeof payload.bidang !== 'undefined') {
+      sheet.getRange(rowIndex + 1, bidangCol + 1).setValue(payload.bidang || '');
+    }
+
+    return { success: true, message: 'Profil berhasil diperbarui' };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  }
+}
 // ══════════════════════════════════════════════════════════════════════
 // getMimeFromName — deteksi MIME type dari ekstensi file
 // ══════════════════════════════════════════════════════════════════════
@@ -5556,6 +5729,117 @@ function exportToSheets(){
 
 // Close modal on overlay click
 document.getElementById('gs-modal').addEventListener('click',function(e){ if(e.target===this) closeGSConfig(); });
+
+
+// ══════════════════════════════════════════════════════════════════════
+// PENGATURAN AKUN
+// ══════════════════════════════════════════════════════════════════════
+function openSettings(){
+  const u = window.AUTH_USER || {};
+  document.getElementById('sett-username').value = u.username || '';
+  document.getElementById('sett-nama').value     = u.nama     || u.username || '';
+  document.getElementById('sett-email').value    = u.email    || '';
+  document.getElementById('sett-telepon').value  = u.telepon  || '';
+  document.getElementById('sett-bidang').value   = u.bidang   || '';
+  // reset password fields
+  ['sett-pw-lama','sett-pw-baru','sett-pw-konfirm'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  settingsStatus('');
+  document.getElementById('settings-modal').classList.add('show');
+}
+
+function closeSettings(){
+  document.getElementById('settings-modal').classList.remove('show');
+}
+
+function toggleSettPw(inputId, btn){
+  const inp = document.getElementById(inputId);
+  const icon = btn.querySelector('i');
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+function settingsStatus(msg, type){
+  const el = document.getElementById('settings-status');
+  el.className = 'settings-status' + (type ? ' ' + type : '');
+  el.textContent = msg || '';
+}
+
+async function saveSettings(){
+  const u = window.AUTH_USER || {};
+  const email   = document.getElementById('sett-email').value.trim();
+  const telepon = document.getElementById('sett-telepon').value.trim();
+  const bidang  = document.getElementById('sett-bidang').value;
+  const pwLama  = document.getElementById('sett-pw-lama').value;
+  const pwBaru  = document.getElementById('sett-pw-baru').value;
+  const pwConfirm = document.getElementById('sett-pw-konfirm').value;
+
+  // Validasi password
+  if(pwBaru || pwLama || pwConfirm){
+    if(!pwLama){ settingsStatus('Isi password lama untuk mengganti password.', 'error'); return; }
+    if(pwBaru.length < 6){ settingsStatus('Password baru minimal 6 karakter.', 'error'); return; }
+    if(pwBaru !== pwConfirm){ settingsStatus('Konfirmasi password tidak cocok.', 'error'); return; }
+  }
+
+  const payload = {
+    action   : 'updateUser',
+    username : u.username,
+    email    : email,
+    telepon  : telepon,
+    bidang   : bidang,
+  };
+  if(pwBaru){ payload.oldPassword = pwLama; payload.newPassword = pwBaru; }
+
+  // Mode offline / demo (tanpa Apps Script)
+  if(!APPS_SCRIPT_URL || !APPS_SCRIPT_URL.includes('script.google.com')){
+    // Simpan sementara ke AUTH_USER saja
+    window.AUTH_USER = Object.assign({}, u, { email, telepon, bidang });
+    document.getElementById('user-role').textContent =
+      bidang ? (window.AUTH_USER.role === 'pegawai' ? 'Pegawai' : 'Bidang ' + bidang)
+             : document.getElementById('user-role').textContent;
+    settingsStatus('✔ Perubahan disimpan secara lokal (mode demo — tidak terhubung ke Google Sheets).', 'success');
+    return;
+  }
+
+  // Mode online
+  document.getElementById('sett-save-btn').disabled = true;
+  settingsStatus('Menyimpan perubahan…', 'loading');
+  try {
+    const res = await postToAppsScript(payload);
+    if(res && res.success){
+      // Update AUTH_USER lokal
+      window.AUTH_USER = Object.assign({}, u, { email, telepon, bidang });
+      settingsStatus('✔ ' + (res.message || 'Profil berhasil diperbarui.'), 'success');
+      // Reset password fields
+      ['sett-pw-lama','sett-pw-baru','sett-pw-konfirm'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      // Refresh sidebar role label jika bidang berubah
+      if(bidang !== u.bidang){
+        const roleEl = document.getElementById('user-role');
+        if(roleEl && !isPegawai() && !isAdminUser()){
+          roleEl.textContent = 'Bidang ' + bidang;
+        }
+      }
+    } else {
+      settingsStatus('✖ ' + (res && res.error ? res.error : 'Gagal menyimpan. Coba lagi.'), 'error');
+    }
+  } catch(e){
+    settingsStatus('✖ Koneksi gagal: ' + e.message, 'error');
+  } finally {
+    document.getElementById('sett-save-btn').disabled = false;
+  }
+}
+
+document.getElementById('settings-modal').addEventListener('click', function(e){
+  if(e.target === this) closeSettings();
+});
 
 // ── INIT ──
 function initAuthUI(){
