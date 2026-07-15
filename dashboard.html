@@ -2541,6 +2541,17 @@ function visibleBidangConfig(){
   return BIDANG_CONFIG.filter(c=>c.key===myBidang);
 }
 
+// ── LAYANAN YANG TERLIHAT OLEH USER YANG LOGIN ──
+// Role 'bidang' (user departemen biasa) tidak boleh melihat atau mengakses
+// layanan "Reimburse Biaya" sama sekali — tidak di grid/kartu, tidak di sidebar,
+// tidak di dropdown pembuatan permintaan.
+function visibleSvcConfig(){
+  if(getUserRole() === 'bidang'){
+    return SVC_CONFIG.filter(c => c.key !== 'Reimburse Biaya');
+  }
+  return SVC_CONFIG;
+}
+
 // ── BIAYA HELPERS ──
 function formatBiaya(val){
   if(!val||val===0) return 'Gratis';
@@ -2609,6 +2620,11 @@ let __activeSidebarPage = null; // {type:'layanan'|'bidang', key:'...'}
 function openLayananFromSidebar(key, sidebarItem){
   // Guard: Pegawai hanya boleh mengakses layanan yang diizinkan
   if(isPegawai() && PEGAWAI_ALLOWED_LAYANAN.indexOf(key) === -1){
+    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
+    return;
+  }
+  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
+  if(getUserRole() === 'bidang' && key === 'Reimburse Biaya'){
     showToast('Anda tidak memiliki akses ke layanan ini', 'error');
     return;
   }
@@ -2889,7 +2905,8 @@ function filterRowsForUser(rows){
     );
   }
   const bid = window.AUTH_USER.bidang;
-  return rows.filter(r => r['Bidang'] === bid);
+  // Role 'bidang': tidak boleh melihat/mengakses layanan Reimburse Biaya sama sekali.
+  return rows.filter(r => r['Bidang'] === bid && r['Jenis Layanan'] !== 'Reimburse Biaya');
 }
 
 // ── FILTER PERIODE (BULAN & TAHUN) — berlaku di tab Utama, Layanan, Bidang ──
@@ -3236,7 +3253,7 @@ function renderStats(s){
   // Service cards
   const svcEl = document.getElementById('svc-grid');
   svcEl.innerHTML='';
-  SVC_CONFIG.forEach(cfg=>{
+  visibleSvcConfig().forEach(cfg=>{
     const cnt=(s.perLayanan&&s.perLayanan[cfg.key])||0;
     const pct=tot?((cnt/tot)*100).toFixed(1):0;
     const biayaStr=cfg.biayaMin===0?'Gratis':`${formatBiaya(cfg.biayaMin)}–${formatBiaya(cfg.biayaMax)}`;
@@ -3797,7 +3814,7 @@ function renderLayananTab(){
 
   const grid = document.getElementById('layanan-full-grid');
   grid.innerHTML='';
-  SVC_CONFIG.forEach(cfg=>{
+  visibleSvcConfig().forEach(cfg=>{
     const cnt=perLayanan[cfg.key]||0;
     const pct=tot?((cnt/tot)*100).toFixed(1):0;
     const bar=tot?Math.round((cnt/tot)*100):0;
@@ -3827,6 +3844,11 @@ function renderLayananTab(){
 
 let activeLayananFilter='all';
 function filterLayanan(key, btnEl){
+  // Guard: role 'bidang' tidak boleh memfilter/melihat Reimburse Biaya
+  if(getUserRole() === 'bidang' && key === 'Reimburse Biaya'){
+    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
+    return;
+  }
   activeLayananFilter=key;
   document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(b=>b.classList.remove('active'));
   if(btnEl) btnEl.classList.add('active');
@@ -4493,6 +4515,11 @@ function renderDemoData(){
 
 // ── MODAL SUMMARY: KLIK JENIS LAYANAN ──
 function showLayananSummary(svcKey){
+  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
+  if(getUserRole() === 'bidang' && svcKey === 'Reimburse Biaya'){
+    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
+    return;
+  }
   const cfg = SVC_CONFIG.find(c=>c.key===svcKey);
   if(!cfg) return;
   const rows = globalData.filter(r=>r['Jenis Layanan']===svcKey);
@@ -4607,6 +4634,12 @@ function showBidangSummary(bidKey){
 
 // ── HALAMAN DETAIL TUNGGAL (dari sidebar): Layanan — chart + stat card + list, khusus 1 jenis layanan ──
 function renderLayananSinglePage(svcKey){
+  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
+  if(getUserRole() === 'bidang' && svcKey === 'Reimburse Biaya'){
+    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
+    switchTab('utama', null);
+    return;
+  }
   const cfg = SVC_CONFIG.find(c=>c.key===svcKey);
   if(!cfg) return;
   const rows = globalData.filter(r=>r['Jenis Layanan']===svcKey);
@@ -5221,7 +5254,7 @@ document.getElementById('summary-modal').addEventListener('click',function(e){ i
 
 // ── FORM BUAT PERMINTAAN (terintegrasi format Google Sheets) ──
 function openRequestForm(){
-  const svcOptions = SVC_CONFIG.map(c=>`<option value="${c.key}">${c.key}</option>`).join('');
+  const svcOptions = visibleSvcConfig().map(c=>`<option value="${c.key}">${c.key}</option>`).join('');
   const bidOptions = BIDANG_CONFIG.map(c=>`<option value="${c.key}">${c.key} — ${c.label}</option>`).join('');
 
   document.getElementById('form-modal-content').innerHTML = `
@@ -5930,6 +5963,28 @@ function initAuthUI(){
     });
     const label = document.getElementById('bidang-menu-label');
     if(label) label.textContent = 'Bidang Saya';
+  }
+
+  // ── Role BIDANG: tidak boleh melihat/mengakses layanan Reimburse Biaya ──
+  if(getUserRole() === 'bidang'){
+    // Sembunyikan menu sidebar "Reimburse Biaya"
+    document.querySelectorAll('#grp-layanan .menu-item').forEach(btn => {
+      const onclk = btn.getAttribute('onclick') || '';
+      const match = onclk.match(/openLayananFromSidebar\('([^']+)'/);
+      if(match && match[1] === 'Reimburse Biaya'){
+        btn.style.display = 'none';
+      }
+    });
+    // Sembunyikan tombol filter "Reimburse Biaya" di tab Layanan (delayed, sama seperti pegawai)
+    setTimeout(function(){
+      document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(btn => {
+        const onclk = btn.getAttribute('onclick') || '';
+        const match = onclk.match(/filterLayanan\('([^']+)'/);
+        if(match && match[1] === 'Reimburse Biaya'){
+          btn.style.display = 'none';
+        }
+      });
+    }, 500);
   }
 }
 
