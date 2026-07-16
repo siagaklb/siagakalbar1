@@ -230,20 +230,6 @@
     .prio{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
     .prio.tinggi{background:#fee2e2;color:#991b1b;}
     .prio.sedang{background:#dbeafe;color:#1e40af;}
-    /* INDIKATOR DEADLINE — highlight baris + badge kecil di kolom Tanggal Dibutuhkan
-       kuning = H-1 menuju tanggal dibutuhkan, masih diproses
-       merah  = sudah lewat tanggal dibutuhkan, belum selesai
-       oranye = selesai tapi telat (Tgl Selesai > Tanggal Dibutuhkan) */
-    tr.dl-warning td{background:#fffbeb;}
-    tr.dl-warning:hover td{background:#fef3c7;}
-    tr.dl-danger td{background:#fef2f2;}
-    tr.dl-danger:hover td{background:#fee2e2;}
-    tr.dl-late td{background:#fff7ed;}
-    tr.dl-late:hover td{background:#ffedd5;}
-    .dl-tag{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700;margin-left:5px;white-space:nowrap;vertical-align:middle;}
-    .dl-tag.dl-warning{background:#fef3c7;color:#92400e;}
-    .dl-tag.dl-danger{background:#fee2e2;color:#991b1b;}
-    .dl-tag.dl-late{background:#ffedd5;color:#9a3412;}
     .prio.rendah{background:#d1fae5;color:#065f46;}
 
     /* EDITABLE CELLS (khusus admin: Status / Tgl Selesai / PIC / Biaya) */
@@ -529,13 +515,6 @@
       .layanan-full-grid,.bidang-full-grid{grid-template-columns:1fr!important;}
       .detail-grid{grid-template-columns:1fr!important;}
       .appr-stage-grid{grid-template-columns:1fr!important;}
-      /* Tabel: jadikan scroll horizontal agar tidak merusak layout di HP */
-      .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
-      .req-table thead,.req-table tbody{display:table;width:100%;min-width:640px;}
-      .mini-items-table,#items-edit-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-      .modal{width:94vw!important;padding:18px!important;}
-      .detail-modal{width:96vw!important;}
-      .summary-modal,.form-modal,.preview-modal{width:96vw!important;}
     }
     @media(max-width:480px){
       .stat-grid{grid-template-columns:1fr 1fr!important;}
@@ -631,26 +610,7 @@
 
     /* GS banner tetap hijau (semantik "terhubung"), hanya perhalus shadow */
     .gs-banner{box-shadow:0 8px 24px rgba(15,157,88,.25);}
-  
-    /* ── MODAL PENGATURAN AKUN ── */
-    .settings-modal{width:480px;max-width:96vw;max-height:90vh;overflow-y:auto;}
-    .settings-section{margin-bottom:20px;}
-    .settings-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
-    .settings-field{margin-bottom:14px;}
-    .settings-field label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;}
-    .settings-field input,.settings-field select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;outline:none;transition:border-color .2s;}
-    .settings-field input:focus,.settings-field select:focus{border-color:var(--primary-light);}
-    .settings-field input[readonly]{background:#f8fafc;color:var(--muted);cursor:not-allowed;}
-    .settings-field .field-hint{font-size:11px;color:var(--muted);margin-top:4px;}
-    .settings-pw-wrap{position:relative;}
-    .settings-pw-wrap input{padding-right:38px;}
-    .settings-pw-wrap .pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:0;}
-    .settings-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
-    .settings-status{font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:12px;display:none;}
-    .settings-status.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
-    .settings-status.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
-    .settings-status.loading{display:block;background:#eff6ff;color:var(--primary-light);border:1px solid #bfdbfe;}
-</style>
+  </style>
 </head>
 <body>
 <canvas id="fx-bg" aria-hidden="true"></canvas>
@@ -769,7 +729,7 @@ function logout(){
         <button class="menu-item" onclick="window.open('form.html','_blank')"><i class="fas fa-link"></i>Form Publik</button>
         <button class="menu-item" id="menu-gs" onclick="openGSConfig()"><i class="fas fa-table"></i>Google Sheets</button>
         <button class="menu-item" onclick="switchTab('utama',this)"><i class="fas fa-bell"></i>Notifikasi</button>
-        <button class="menu-item" onclick="openSettings()"><i class="fas fa-cog"></i>Pengaturan</button>
+        <button class="menu-item" onclick="switchTab('utama',this)"><i class="fas fa-cog"></i>Pengaturan</button>
         <button class="menu-item" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i>Keluar</button>
       </div>
     </div>
@@ -896,24 +856,24 @@ function logout(){
       </div>
 
       <!-- SERVICE CARDS -->
-      <div class="sec-head" id="section-svc-head">
+      <div class="sec-head">
         <div class="sec-title"><i class="fas fa-th" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Jenis Layanan</div>
         <a class="see-all" onclick="switchTab('layanan',null)">Lihat Semua →</a>
       </div>
       <div class="svc-grid" id="svc-grid"></div>
 
       <!-- BIDANG CARDS -->
-      <div class="sec-head" id="section-bidang-head">
+      <div class="sec-head">
         <div class="sec-title"><i class="fas fa-sitemap" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Bidang</div>
         <a class="see-all" onclick="switchTab('bidang',null)">Lihat Detail →</a>
       </div>
       <div class="bidang-grid" id="bidang-grid"></div>
 
       <!-- TREND + DONUT -->
-      <div class="g2" id="section-trend-donut">
+      <div class="g2">
         <div class="card neu-card">
           <div class="sec-head">
-            <div class="sec-title"><i class="fas fa-chart-line" style="color:var(--primary-light);margin-right:6px;"></i>Tren 1 Bulan Terakhir</div>
+            <div class="sec-title"><i class="fas fa-chart-line" style="color:var(--primary-light);margin-right:6px;"></i>Tren 7 Hari Terakhir</div>
           </div>
           <div class="chart-h"><canvas id="trendChart"></canvas></div>
         </div>
@@ -934,7 +894,7 @@ function logout(){
       </div>
 
       <!-- BAR + TOP PEMOHON -->
-      <div class="g3" id="section-bar-top">
+      <div class="g3">
         <div class="card neu-card" style="grid-column:span 2;">
           <div class="sec-title"><i class="fas fa-chart-bar" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Bidang (Stacked)</div>
           <div class="chart-sm"><canvas id="barChart"></canvas></div>
@@ -946,7 +906,7 @@ function logout(){
       </div>
 
       <!-- BIAYA PER BIDANG -->
-      <div class="g2" id="section-biaya-bidang">
+      <div class="g2">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-wallet" style="color:#d97706;margin-right:6px;"></i>Biaya per Bidang</div>
@@ -961,7 +921,7 @@ function logout(){
       </div>
 
       <!-- LAMA PEMENUHAN KEBUTUHAN PER BIDANG (SPEEDOMETER) -->
-      <div class="card hud-panel" id="section-gauge">
+      <div class="card hud-panel">
         <div class="sec-head">
           <div class="sec-title"><i class="fas fa-tachometer-alt" style="color:#38bdf8;margin-right:6px;"></i>Lama Pemenuhan Kebutuhan per Bidang</div>
           <span style="font-size:11.5px;">Rata-rata hari kerja dari permintaan dibuat hingga Tanggal Selesai diisi (khusus status Selesai)</span>
@@ -970,7 +930,7 @@ function logout(){
       </div>
 
       <!-- KONSUMSI KHUSUS PER BIDANG -->
-      <div class="g2" id="section-konsumsi-khusus">
+      <div class="g2">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-utensils" style="color:#2563eb;margin-right:6px;"></i>Permintaan Konsumsi Khusus per Bidang</div>
@@ -985,7 +945,7 @@ function logout(){
       </div>
 
       <!-- KONSUMSI KHUSUS - BIAYA PER BIDANG -->
-      <div class="g2" id="section-konsumsi-khusus-biaya">
+      <div class="g2">
         <div class="card neu-card">
           <div class="sec-head">
             <div class="sec-title"><i class="fas fa-money-bill-wave" style="color:#2563eb;margin-right:6px;"></i>Biaya Konsumsi Khusus per Bidang</div>
@@ -1176,15 +1136,9 @@ function logout(){
           <div class="sec-title"><i class="fas fa-utensils" style="color:#2563eb;margin-right:6px;"></i><span id="sd-kk-title">Konsumsi Khusus</span></div>
         </div>
         <div class="summary-stat-row" id="sd-kk-stat-row" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px;"></div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
-          <div class="card neu-card" style="max-width:340px;flex:1 1 300px;">
-            <div class="sec-title" style="font-size:12px;"><i class="fas fa-chart-pie" style="color:#2563eb;margin-right:6px;"></i>Status Permintaan Konsumsi Khusus</div>
-            <div class="chart-md" style="height:200px;"><canvas id="sdKkChart"></canvas></div>
-          </div>
-          <div class="card neu-card" style="flex:2 1 420px;min-width:320px;">
-            <div class="sec-title" style="font-size:12px;"><i class="fas fa-chart-bar" style="color:#2563eb;margin-right:6px;"></i>Biaya Konsumsi Khusus per Bulan</div>
-            <div class="chart-md" style="height:200px;"><canvas id="sdKkBiayaBulanChart"></canvas></div>
-          </div>
+        <div class="card neu-card" style="margin-bottom:14px;max-width:340px;">
+          <div class="sec-title" style="font-size:12px;"><i class="fas fa-chart-pie" style="color:#2563eb;margin-right:6px;"></i>Status Permintaan Konsumsi Khusus</div>
+          <div class="chart-md" style="height:200px;"><canvas id="sdKkChart"></canvas></div>
         </div>
         <div class="sec-head" style="margin-bottom:10px;">
           <div class="sec-title" style="font-size:13px;"><i class="fas fa-list" style="color:#2563eb;margin-right:6px;"></i>Daftar Permintaan Konsumsi Khusus</div>
@@ -1405,86 +1359,9 @@ function logout(){
   </div>
 </div>
 
-<!-- ══════════════════ MODAL PENGATURAN AKUN ══════════════════ -->
-<div class="modal-overlay" id="settings-modal">
-  <div class="modal settings-modal">
-    <h2><i class="fas fa-user-cog" style="color:var(--primary-light);margin-right:8px;"></i>Pengaturan Akun</h2>
-    <p class="sub" id="settings-sub">Perbarui informasi akun Anda. Perubahan langsung tersimpan ke Google Sheets.</p>
-
-    <div class="settings-section">
-      <div class="settings-section-title"><i class="fas fa-id-card" style="margin-right:5px;"></i>Informasi Pribadi</div>
-      <div class="settings-field">
-        <label>Username</label>
-        <input type="text" id="sett-username" readonly/>
-        <div class="field-hint">Username tidak dapat diubah.</div>
-      </div>
-      <div class="settings-field">
-        <label>Nama Lengkap</label>
-        <input type="text" id="sett-nama" readonly/>
-        <div class="field-hint">Nama tidak dapat diubah melalui pengaturan ini.</div>
-      </div>
-      <div class="settings-field">
-        <label>Email</label>
-        <input type="email" id="sett-email" placeholder="email@perusahaan.com"/>
-      </div>
-      <div class="settings-field">
-        <label>No. Handphone</label>
-        <input type="tel" id="sett-telepon" placeholder="08xxxxxxxxxx"/>
-      </div>
-      <div class="settings-field">
-        <label>Bidang Asal</label>
-        <select id="sett-bidang">
-          <option value="">— Pilih Bidang —</option>
-          <option value="HAR">HAR — Pemeliharaan</option>
-          <option value="OPS">OPS — Operasi</option>
-          <option value="ENG">ENG — Engineering</option>
-          <option value="K3L">K3L — Keselamatan &amp; Lingkungan</option>
-          <option value="PBJ">PBJ — Pengadaan Barang &amp; Jasa</option>
-          <option value="ADM">ADM — Administrasi</option>
-        </select>
-      </div>
-    </div>
-
-    <hr class="settings-divider"/>
-
-    <div class="settings-section">
-      <div class="settings-section-title"><i class="fas fa-lock" style="margin-right:5px;"></i>Ubah Password</div>
-      <div class="settings-field">
-        <label>Password Lama</label>
-        <div class="settings-pw-wrap">
-          <input type="password" id="sett-pw-lama" placeholder="Masukkan password saat ini"/>
-          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-lama',this)"><i class="fas fa-eye"></i></button>
-        </div>
-      </div>
-      <div class="settings-field">
-        <label>Password Baru</label>
-        <div class="settings-pw-wrap">
-          <input type="password" id="sett-pw-baru" placeholder="Min. 6 karakter"/>
-          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-baru',this)"><i class="fas fa-eye"></i></button>
-        </div>
-      </div>
-      <div class="settings-field">
-        <label>Konfirmasi Password Baru</label>
-        <div class="settings-pw-wrap">
-          <input type="password" id="sett-pw-konfirm" placeholder="Ulangi password baru"/>
-          <button class="pw-eye" type="button" onclick="toggleSettPw('sett-pw-konfirm',this)"><i class="fas fa-eye"></i></button>
-        </div>
-        <div class="field-hint">Kosongkan jika tidak ingin mengubah password.</div>
-      </div>
-    </div>
-
-    <div class="settings-status" id="settings-status"></div>
-
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeSettings()">Batal</button>
-      <button class="btn-save" id="sett-save-btn" onclick="saveSettings()"><i class="fas fa-save"></i> Simpan Perubahan</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // ===================== CONFIG =====================
-let APPS_SCRIPT_URL = localStorage.getItem('gs_url') || 'https://script.google.com/macros/s/AKfycbyss4DjNCdTGF0xcMURyWsXS83TtpbVt6jcFw00YEp-RMUvQgN3MXvULQkCbLAmJe4YTg/exec';
+let APPS_SCRIPT_URL = localStorage.getItem('gs_url') || '';
 
 // ══ UPDATE ROW — WAJIB PAKAI GET+JSONP, BUKAN POST SAMA SEKALI ══
 // Awalnya updateRow dikirim via POST (fetch lalu XHR), tapi keduanya tetap bisa gagal
@@ -1590,7 +1467,7 @@ function updateRowViaPOST(id, fields){
   // Kebutuhan per Bidang" sengaja TIDAK dimasukkan agar tetap seperti semula.
   const NEUMORPHIC_IDS = new Set(['trendChart','donutChart','barChart','biayaBidangChart',
     'konsumsiKhususChart','konsumsiKhususBiayaChart','bidangBarChart','bidangDonutChart',
-    'bidangBiayaChart','bidangBiayaAvgChart','sdChart','sdChartBiaya','sdKkChart','sdKkBiayaBulanChart']);
+    'bidangBiayaChart','bidangBiayaAvgChart','sdChart','sdChartBiaya','sdKkChart']);
   window.NEUMORPHIC_IDS = NEUMORPHIC_IDS;
 
   const Pseudo3D = {
@@ -1705,7 +1582,7 @@ function updateRowViaPOST(id, fields){
     Chart.register(Pseudo3D);
     Chart.register(NeumorphicGlow);
     // Beri ruang ekstra agar efek kedalaman 3D tidak terpotong
-    Chart.defaults.set('bar', {layout:{padding:{top:26,right:18}}});
+    Chart.defaults.set('bar', {layout:{padding:{top:14,right:14}}});
     Chart.defaults.set('doughnut', {layout:{padding:{bottom:14}}});
   }
 })();
@@ -1919,18 +1796,11 @@ function processAddRow(payload) {
     }
   });
 
-  // 2. Generate ID final (format REQ-YYYY-MM0001) — HANYA kalau client belum kirim ID.
-  //    ID ditulis balik ke rowData['ID'] supaya ikut tersimpan ke kolom ID di Sheet
-  //    dan dikembalikan ke form.html lewat result.id (lihat return di bawah).
-  var reqId = (rowData['ID'] && String(rowData['ID']).trim() !== '')
-    ? String(rowData['ID']).trim()
-    : generateNextReqId(sheet, headers);
-  rowData['ID'] = reqId;
-
-  // 3. Upload lampiran — folder: [Bidang] → [ID Permintaan]
+  // 2. Upload lampiran — folder: [Bidang] → [ID Permintaan]
   var files         = payload.files || [];
   var lampiranLinks = []; // hanya URL, tanpa nama file
   var uploadErrors  = [];
+  var reqId         = rowData['ID'] || ('REQ-' + Date.now());
   var bidang        = (rowData['Bidang'] || 'Lainnya').toString().trim().toUpperCase() || 'Lainnya';
 
   Logger.log('Jumlah file diterima: ' + files.length + ' (Bidang: ' + bidang + ', REQ: ' + reqId + ')');
@@ -1959,15 +1829,15 @@ function processAddRow(payload) {
     }
   });
 
-  // 4. Tulis baris ke Sheets
+  // 3. Tulis baris ke Sheets
   var newRow = headers.map(function(h) {
     if (h === 'Lampiran') return lampiranLinks.length > 0 ? lampiranLinks.join(';;') : '';
     return rowData.hasOwnProperty(h) ? rowData[h] : '';
   });
   sheet.appendRow(newRow);
-  Logger.log('Baris ditambahkan. ID: ' + reqId + '. Lampiran: ' + (lampiranLinks.length > 0 ? lampiranLinks.join(' | ') : '(kosong)'));
+  Logger.log('Baris ditambahkan. Lampiran: ' + (lampiranLinks.length > 0 ? lampiranLinks.join(' | ') : '(kosong)'));
 
-  // 5. Salin/perbarui juga ke sheet khusus sesuai Jenis Layanan (mis. "ATK", "Kendaraan", dst)
+  // 4. Salin/perbarui juga ke sheet khusus sesuai Jenis Layanan (mis. "ATK", "Kendaraan", dst)
   try {
     syncRowToLayananSheet(headers, newRow);
   } catch (syncErr) {
@@ -1976,7 +1846,6 @@ function processAddRow(payload) {
 
   return {
     success      : true,
-    id           : reqId, // ← dipakai form.html utk menampilkan ID final di layar sukses
     lampiranCount: lampiranLinks.length,
     lampiran     : lampiranLinks,
     uploadErrors : uploadErrors,
@@ -1986,43 +1855,6 @@ function processAddRow(payload) {
           ? 'Data tersimpan, tapi upload lampiran gagal: ' + uploadErrors.join('; ')
           : 'Berhasil disimpan (tanpa lampiran)')
   };
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// generateNextReqId — buat ID baru format REQ-YYYY-MM0001 (tahun-bulan +
-// nomor urut 4 digit yang reset tiap bulan). Pakai LockService supaya
-// aman kalau ada 2 pengajuan masuk hampir bersamaan (hindari ID kembar).
-// ══════════════════════════════════════════════════════════════════════
-function generateNextReqId(sheet, headers) {
-  var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
-    var now    = new Date();
-    var yyyy   = now.getFullYear();
-    var mm     = String(now.getMonth() + 1).padStart(2, '0');
-    var prefix = 'REQ-' + yyyy + '-' + mm;
-
-    var idCol  = headers.indexOf('ID');
-    var maxSeq = 0;
-
-    if (idCol !== -1) {
-      var lastRow = sheet.getLastRow();
-      if (lastRow >= 2) {
-        var idValues = sheet.getRange(2, idCol + 1, lastRow - 1, 1).getValues();
-        idValues.forEach(function(row) {
-          var id = String(row[0] || '');
-          if (id.indexOf(prefix) === 0) {
-            var seqNum = parseInt(id.substring(prefix.length), 10);
-            if (!isNaN(seqNum) && seqNum > maxSeq) maxSeq = seqNum;
-          }
-        });
-      }
-    }
-
-    return prefix + String(maxSeq + 1).padStart(4, '0');
-  } finally {
-    lock.releaseLock();
-  }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -2172,12 +2004,6 @@ function doPost(e) {
       return output;
     }
 
-    if (payload.action === 'updateUser') {
-      var result3 = processUpdateUser(payload);
-      output.setContent(JSON.stringify(result3));
-      return output;
-    }
-
     output.setContent(JSON.stringify({ success: false, error: 'Action tidak dikenal: ' + payload.action }));
     return output;
 
@@ -2287,10 +2113,10 @@ function getStats() {
     .map(function(k) { return { nama: k, count: nameCnt[k] }; });
 
   var trend = [];
-  for (var i = 29; i >= 0; i--) {
+  for (var i = 6; i >= 0; i--) {
     var d = new Date(); d.setDate(d.getDate() - i);
     var dStr = d.toDateString();
-    var dayLabel = d.toLocaleDateString('id-ID', { day:'numeric', month:'short' });
+    var dayLabel = d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric' });
     var cnt = rows.filter(function(r) {
       if (!r['Timestamp']) return false;
       return new Date(r['Timestamp']).toDateString() === dStr;
@@ -2391,77 +2217,6 @@ function login(username, password) {
   }};
 }
 
-
-// ══════════════════════════════════════════════════════════════════════
-// processUpdateUser — update Email, Telepon, Bidang, dan/atau Password
-// di sheet Users berdasarkan Username.
-// Payload: { action:'updateUser', username, email, telepon, bidang,
-//            oldPassword (opsional), newPassword (opsional) }
-// ══════════════════════════════════════════════════════════════════════
-function processUpdateUser(payload) {
-  try {
-    var ss    = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('Users');
-    if (!sheet) return { success: false, error: 'Sheet "Users" tidak ditemukan' };
-
-    var data    = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var usernameCol = headers.indexOf('Username');
-    var passwordCol = headers.indexOf('Password');
-    var emailCol    = headers.indexOf('Email');
-    var teleponCol  = headers.indexOf('Telepon');
-    var bidangCol   = headers.indexOf('Bidang');
-
-    if (usernameCol === -1) return { success: false, error: 'Kolom Username tidak ditemukan di sheet Users' };
-
-    var rowIndex = -1;
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][usernameCol]).trim().toLowerCase() === String(payload.username).trim().toLowerCase()) {
-        rowIndex = i; break;
-      }
-    }
-    if (rowIndex === -1) return { success: false, error: 'User tidak ditemukan' };
-
-    // Validasi password lama jika ingin ganti password
-    if (payload.newPassword) {
-      if (!payload.oldPassword) return { success: false, error: 'Password lama wajib diisi untuk mengganti password' };
-      if (passwordCol === -1) return { success: false, error: 'Kolom Password tidak ditemukan di sheet Users' };
-      var currentPw = String(data[rowIndex][passwordCol]).trim();
-      if (currentPw !== String(payload.oldPassword).trim()) {
-        return { success: false, error: 'Password lama tidak sesuai' };
-      }
-      sheet.getRange(rowIndex + 1, passwordCol + 1).setValue(payload.newPassword);
-    }
-
-    // Update Email
-    if (emailCol !== -1 && typeof payload.email !== 'undefined') {
-      sheet.getRange(rowIndex + 1, emailCol + 1).setValue(payload.email || '');
-    } else if (typeof payload.email !== 'undefined' && emailCol === -1) {
-      // Kolom Email belum ada — tambahkan
-      var newCol = headers.length + 1;
-      sheet.getRange(1, newCol).setValue('Email');
-      sheet.getRange(rowIndex + 1, newCol).setValue(payload.email || '');
-    }
-
-    // Update Telepon
-    if (teleponCol !== -1 && typeof payload.telepon !== 'undefined') {
-      sheet.getRange(rowIndex + 1, teleponCol + 1).setValue(payload.telepon || '');
-    } else if (typeof payload.telepon !== 'undefined' && teleponCol === -1) {
-      var newCol2 = sheet.getLastColumn() + 1;
-      sheet.getRange(1, newCol2).setValue('Telepon');
-      sheet.getRange(rowIndex + 1, newCol2).setValue(payload.telepon || '');
-    }
-
-    // Update Bidang
-    if (bidangCol !== -1 && typeof payload.bidang !== 'undefined') {
-      sheet.getRange(rowIndex + 1, bidangCol + 1).setValue(payload.bidang || '');
-    }
-
-    return { success: true, message: 'Profil berhasil diperbarui' };
-  } catch(e) {
-    return { success: false, error: e.toString() };
-  }
-}
 // ══════════════════════════════════════════════════════════════════════
 // getMimeFromName — deteksi MIME type dari ekstensi file
 // ══════════════════════════════════════════════════════════════════════
@@ -2503,7 +2258,7 @@ let lastLocalWriteAt = 0; // timestamp() saat penyimpanan lokal (Simpan Biaya/St
 let globalData = [];
 let layananPage = 1;
 const PAGE_SIZE = 15;
-let trendChart, donutChart, barChart, bidangBarChart, bidangDonutChart, biayaBidangChart, bidangBiayaChart, bidangBiayaAvgChart, konsumsiKhususChart, konsumsiKhususBiayaChart, sdChart, sdChartBiaya, sdKkChart, sdKkBiayaBulanChart;
+let trendChart, donutChart, barChart, bidangBarChart, bidangDonutChart, biayaBidangChart, bidangBiayaChart, bidangBiayaAvgChart, konsumsiKhususChart, konsumsiKhususBiayaChart, sdChart, sdChartBiaya, sdKkChart;
 // masterDataAll = seluruh data yang boleh diakses user (sudah difilter per-bidang login), SEBELUM filter periode.
 // globalData    = subset dari masterDataAll setelah filter Bulan/Tahun diterapkan — inilah yang dipakai seluruh chart/tabel.
 let masterDataAll = [];
@@ -2535,21 +2290,9 @@ const AVATAR_COLORS = ['#0070c0','#ed7d31','#002060','#ff0000','#00b050','#ffd96
 // User bidang (mis. login sebagai HAR) hanya melihat data & chart bidangnya sendiri —
 // bidang lain tidak ditampilkan sama sekali di chart perbandingan antar bidang.
 function visibleBidangConfig(){
-  // Admin dan Pegawai melihat semua bidang (pegawai dibatasi di level data/layanan)
-  if(isAdminUser() || isPegawai()) return BIDANG_CONFIG;
+  if(isAdminUser()) return BIDANG_CONFIG;
   const myBidang = window.AUTH_USER && window.AUTH_USER.bidang;
   return BIDANG_CONFIG.filter(c=>c.key===myBidang);
-}
-
-// ── LAYANAN YANG TERLIHAT OLEH USER YANG LOGIN ──
-// Role 'bidang' (user departemen biasa) tidak boleh melihat atau mengakses
-// layanan "Reimburse Biaya" sama sekali — tidak di grid/kartu, tidak di sidebar,
-// tidak di dropdown pembuatan permintaan.
-function visibleSvcConfig(){
-  if(getUserRole() === 'bidang'){
-    return SVC_CONFIG.filter(c => c.key !== 'Reimburse Biaya');
-  }
-  return SVC_CONFIG;
 }
 
 // ── BIAYA HELPERS ──
@@ -2618,16 +2361,6 @@ function setActiveSidebarItem(sidebarItem){
 let __activeSidebarPage = null; // {type:'layanan'|'bidang', key:'...'}
 
 function openLayananFromSidebar(key, sidebarItem){
-  // Guard: Pegawai hanya boleh mengakses layanan yang diizinkan
-  if(isPegawai() && PEGAWAI_ALLOWED_LAYANAN.indexOf(key) === -1){
-    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
-    return;
-  }
-  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
-  if(getUserRole() === 'bidang' && key === 'Reimburse Biaya'){
-    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
-    return;
-  }
   __activeSidebarPage = {type:'layanan', key};
   switchTab('single-detail', sidebarItem);
   renderLayananSinglePage(key);
@@ -2699,10 +2432,10 @@ function initCharts() {
       borderWidth:3,tension:.45,fill:true,
       pointBackgroundColor:'#2563eb',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-      tooltip:{callbacks:{title:items=>items[0]?.label||'', label:ctx=>' '+ctx.parsed.y+' permintaan'}},
-      datalabels:{display:false}},
-      scales:{y:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5',drawTicks:false},border:{display:false},ticks:{font:{size:10},color:'#94a3b8',precision:0}},
-               x:{grid:{display:false},border:{display:false},ticks:{font:{size:9},color:'#94a3b8',maxRotation:0,autoSkip:true,maxTicksLimit:10}}}}
+      datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'top',anchor:'end',offset:6,
+        color:'#2563eb',font:{size:10,weight:'700'},formatter:v=>v}},
+      scales:{y:{beginAtZero:true,grid:{color:'#e6ecf5',drawTicks:false},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}},
+               x:{grid:{display:false},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}}}
   });
   const dCtx = document.getElementById('donutChart').getContext('2d');
   donutChart = new Chart(dCtx,{type:'doughnut',
@@ -2731,7 +2464,7 @@ function initCharts() {
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,color:'#fff',
         font:{size:9,weight:'700'},formatter:v=>v}},
       scales:{x:{stacked:true,grid:{display:false},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}},
-               y:{stacked:true,beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}}}
+               y:{stacked:true,beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}}}
   });
 
   // Bidang charts
@@ -2746,7 +2479,7 @@ function initCharts() {
       plugins:{legend:{position:'top',labels:{font:{size:10},color:'#64748b',boxWidth:9,usePointStyle:true,pointStyle:'circle'}},
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'top',anchor:'end',offset:2,
         color:'#334155',font:{size:9,weight:'700'},formatter:v=>v}},
-      scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10}}}}}
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10}}}}}
   });
   const bdCtx = document.getElementById('bidangDonutChart').getContext('2d');
   bidangDonutChart = new Chart(bdCtx,{type:'doughnut',
@@ -2768,7 +2501,7 @@ function initCharts() {
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'top',anchor:'end',offset:2,
         color:'#334155',font:{size:9,weight:'700'},formatter:v=>formatBiaya(v)}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}},
-               y:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8',callback:v=>formatBiaya(v)}}}}
+               y:{beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8',callback:v=>formatBiaya(v)}}}}
   });
 
   // Chart Total Biaya per Bidang (Tab Bidang)
@@ -2781,7 +2514,7 @@ function initCharts() {
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'top',anchor:'end',offset:2,
         color:'#334155',font:{size:9,weight:'700'},formatter:v=>formatBiaya(v)}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:10}}},
-               y:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},callback:v=>formatBiaya(v)}}}}
+               y:{beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},callback:v=>formatBiaya(v)}}}}
   });
 
   // Chart Rata-rata Biaya per Permintaan per Bidang (Tab Bidang)
@@ -2793,7 +2526,7 @@ function initCharts() {
       plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+formatBiayaFull(ctx.parsed.x)}},
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'end',anchor:'end',offset:4,
         color:'#334155',font:{size:9,weight:'700'},formatter:v=>formatBiaya(v)}},
-      scales:{x:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},callback:v=>formatBiaya(v)}},
+      scales:{x:{beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},callback:v=>formatBiaya(v)}},
                y:{grid:{display:false},border:{display:false},ticks:{font:{size:10}}}}}
   });
 
@@ -2822,7 +2555,7 @@ function initCharts() {
       datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,align:'top',anchor:'end',offset:2,
         color:'#334155',font:{size:9,weight:'700'},formatter:v=>formatBiaya(v)}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{font:{size:10}}},
-               y:{beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8',callback:v=>formatBiaya(v)}}}}
+               y:{beginAtZero:true,grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8',callback:v=>formatBiaya(v)}}}}
   });
 }
 
@@ -2864,8 +2597,6 @@ function isAdminUser(){
   const u = window.AUTH_USER;
   const role = (u && u.role || '').toString().toLowerCase();
   const APPROVAL_ROLES_FULL_ACCESS = ['supervisor', 'senior_admin', 'manager'];
-  // pegawai bukan admin — filterRowsForUser akan menangani pembatasan layanan mereka
-  if(role === 'pegawai') return false;
   return isSuperAdmin() || !u.bidang || u.bidang === 'ALL'
     || APPROVAL_ROLES_FULL_ACCESS.indexOf(role) !== -1;
 }
@@ -2887,26 +2618,10 @@ function getUserRole(){
 function isSupervisor(){ return isSuperAdmin() || getUserRole()==='supervisor'; }
 function isSeniorAdmin(){ return isSuperAdmin() || getUserRole()==='senior_admin'; }
 function isManagerAdmin(){ return isSuperAdmin() || getUserRole()==='manager'; }
-
-// ── ROLE PEGAWAI ──
-// Role 'pegawai' hanya dapat melihat layanan tertentu saja (read-only terbatas).
-// Layanan yang diizinkan: Reimburse Biaya, ATK, Kendaraan, Ruang Meeting, Perbaikan Sipil.
-const PEGAWAI_ALLOWED_LAYANAN = ['Reimburse Biaya', 'ATK', 'Kendaraan', 'Ruang Meeting', 'Perbaikan Sipil'];
-function isPegawai(){ return getUserRole() === 'pegawai'; }
-
 function filterRowsForUser(rows){
   if(isAdminUser()) return rows;
-  // Pegawai: hanya melihat permintaan milik sendiri + layanan yang diizinkan
-  if(isPegawai()){
-    const myName = (window.AUTH_USER && (window.AUTH_USER.nama || window.AUTH_USER.username) || '').toLowerCase();
-    return rows.filter(r =>
-      PEGAWAI_ALLOWED_LAYANAN.indexOf(r['Jenis Layanan']) !== -1 &&
-      (r['Nama Pemohon'] || '').toLowerCase() === myName
-    );
-  }
   const bid = window.AUTH_USER.bidang;
-  // Role 'bidang': tidak boleh melihat/mengakses layanan Reimburse Biaya sama sekali.
-  return rows.filter(r => r['Bidang'] === bid && r['Jenis Layanan'] !== 'Reimburse Biaya');
+  return rows.filter(r => r['Bidang'] === bid);
 }
 
 // ── FILTER PERIODE (BULAN & TAHUN) — berlaku di tab Utama, Layanan, Bidang ──
@@ -2921,58 +2636,6 @@ function parseTglID(str){
   const year = parseInt(parts[2],10);
   if(isNaN(day) || monthIdx===-1 || isNaN(year)) return null;
   return new Date(year, monthIdx, day);
-}
-
-// ── Indikator batas waktu (deadline) permintaan ──────────────────────────
-// Membandingkan 'Tanggal Dibutuhkan' terhadap hari ini (atau Tanggal Selesai
-// bila sudah selesai) dan mengembalikan status visual:
-//   null         -> aman, tidak perlu indikator
-//   'dl-warning' -> H-1 menuju tanggal dibutuhkan, status belum Selesai/Ditolak
-//   'dl-danger'  -> sudah lewat tanggal dibutuhkan, status belum Selesai/Ditolak
-//   'dl-late'    -> status Selesai, tapi Tanggal Selesai > Tanggal Dibutuhkan
-function getDeadlineInfo(r){
-  const status = r['Status']||'Menunggu';
-  if(status==='Ditolak') return null; // request ditolak tidak relevan dengan deadline
-
-  const tglButuh = parseTglID(r['Tanggal Dibutuhkan']);
-  if(!tglButuh) return null; // tidak ada tanggal dibutuhkan -> tidak bisa dihitung
-
-  // Normalisasi ke tengah malam supaya perbandingan berbasis hari (bukan jam)
-  tglButuh.setHours(0,0,0,0);
-
-  if(status==='Selesai'){
-    const tglSelesaiRaw = r['Tanggal Selesai'];
-    if(!tglSelesaiRaw) return null;
-    const tglSelesai = new Date(tglSelesaiRaw); // format input type=date -> yyyy-mm-dd
-    if(isNaN(tglSelesai.getTime())) return null;
-    tglSelesai.setHours(0,0,0,0);
-    if(tglSelesai.getTime() > tglButuh.getTime()){
-      const hari = Math.round((tglSelesai - tglButuh)/86400000);
-      return {cls:'dl-late', label:`Telat ${hari} hari`, icon:'fa-clock-rotate-left'};
-    }
-    return null; // selesai tepat waktu / lebih awal -> aman
-  }
-
-  // Belum selesai (Menunggu / Dalam Proses): bandingkan dengan hari ini
-  const today = new Date(); today.setHours(0,0,0,0);
-  const selisihHari = Math.round((tglButuh - today)/86400000);
-
-  if(selisihHari < 0){
-    return {cls:'dl-danger', label:`Lewat ${Math.abs(selisihHari)} hari`, icon:'fa-triangle-exclamation'};
-  }
-  if(selisihHari === 0){
-    return {cls:'dl-warning', label:'Jatuh tempo hari ini', icon:'fa-hourglass-half'};
-  }
-  if(selisihHari === 1){
-    return {cls:'dl-warning', label:'H-1', icon:'fa-hourglass-half'};
-  }
-  return null; // masih > H-1 -> aman, tidak ditandai
-}
-
-// Badge kecil untuk ditempel di kolom Tanggal Dibutuhkan
-function deadlineTagHTML(dl){
-  if(!dl) return '';
-  return `<span class="dl-tag ${dl.cls}"><i class="fas ${dl.icon}"></i>${dl.label}</span>`;
 }
 
 function populatePeriodYearOptions(rows){
@@ -3078,9 +2741,9 @@ function recomputeStatsFromRows(rows){
   const topPemohon=Object.entries(nameCnt).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([nama,count])=>({nama,count}));
 
   const trend=[];
-  for(let i=29;i>=0;i--){
+  for(let i=6;i>=0;i--){
     const d=new Date(); d.setDate(d.getDate()-i);
-    const dayStr=d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+    const dayStr=d.toLocaleDateString('id-ID',{weekday:'short',day:'numeric'});
     const cnt=rows.filter(r=>{
       if(!r['Timestamp']) return false;
       const rd=new Date(r['Timestamp']);
@@ -3253,7 +2916,7 @@ function renderStats(s){
   // Service cards
   const svcEl = document.getElementById('svc-grid');
   svcEl.innerHTML='';
-  visibleSvcConfig().forEach(cfg=>{
+  SVC_CONFIG.forEach(cfg=>{
     const cnt=(s.perLayanan&&s.perLayanan[cfg.key])||0;
     const pct=tot?((cnt/tot)*100).toFixed(1):0;
     const biayaStr=cfg.biayaMin===0?'Gratis':`${formatBiaya(cfg.biayaMin)}–${formatBiaya(cfg.biayaMax)}`;
@@ -3703,8 +3366,6 @@ function renderTable(rows, tbodyId='req-tbody'){
     const rid = r['ID']||'';
     const tglSelesaiRaw = r['Tanggal Selesai']||'';
     const picRaw = r['PIC']||'';
-    const dl = getDeadlineInfo(r);
-    const rowClass = dl ? ` class="${dl.cls}"` : '';
 
     // Kolom Status: admin bisa ubah langsung via dropdown, user lain hanya melihat badge
     const statusCell = admin
@@ -3728,7 +3389,7 @@ function renderTable(rows, tbodyId='req-tbody'){
       ? `<div class="biaya-edit-wrap"><span class="biaya-prefix">Rp</span><input type="text" class="cell-edit-biaya" value="${biaya?Number(biaya).toLocaleString('id-ID'):''}" placeholder="0" oninput="formatBiayaLive(this)" onblur="commitBiayaEdit('${rid}',this)" onkeydown="if(event.key==='Enter'){this.blur();}"/></div>`
       : `<span class="biaya-tag"><i class="fas fa-tag"></i>${formatBiayaFull(biaya)}</span>`;
 
-    return `<tr${rowClass}>
+    return `<tr>
       <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}</td>
       <td><div class="rsvc">
         <div class="ricon" style="background:${svc.bg};"><i class="fas ${svc.icon}" style="color:${svc.color};"></i></div>
@@ -3739,7 +3400,7 @@ function renderTable(rows, tbodyId='req-tbody'){
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td>${biayaCell}</td>
       <td style="font-size:11.5px;color:var(--muted);">${r['Dibuat']||'–'}</td>
-      <td style="${tglDibutuhkanStyle}"><i class="fas fa-calendar-check" style="font-size:10px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
+      <td style="${tglDibutuhkanStyle}"><i class="fas fa-calendar-check" style="font-size:10px;margin-right:3px;"></i>${tglDibutuhkan}</td>
       <td>${statusCell}</td>
       <td>${tglSelesaiCell}</td>
       <td>${picCell}</td>
@@ -3814,7 +3475,7 @@ function renderLayananTab(){
 
   const grid = document.getElementById('layanan-full-grid');
   grid.innerHTML='';
-  visibleSvcConfig().forEach(cfg=>{
+  SVC_CONFIG.forEach(cfg=>{
     const cnt=perLayanan[cfg.key]||0;
     const pct=tot?((cnt/tot)*100).toFixed(1):0;
     const bar=tot?Math.round((cnt/tot)*100):0;
@@ -3844,11 +3505,6 @@ function renderLayananTab(){
 
 let activeLayananFilter='all';
 function filterLayanan(key, btnEl){
-  // Guard: role 'bidang' tidak boleh memfilter/melihat Reimburse Biaya
-  if(getUserRole() === 'bidang' && key === 'Reimburse Biaya'){
-    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
-    return;
-  }
   activeLayananFilter=key;
   document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(b=>b.classList.remove('active'));
   if(btnEl) btnEl.classList.add('active');
@@ -4506,7 +4162,7 @@ function renderDemoData(){
   const nameCnt={};rows.forEach(r=>nameCnt[r['Nama Pemohon']]=(nameCnt[r['Nama Pemohon']]||0)+1);
   const topPemohon=Object.entries(nameCnt).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([nama,count])=>({nama,count}));
   const trend=[];
-  for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);trend.push({label:d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}),count:Math.floor(Math.random()*15)+3});}
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);trend.push({label:d.toLocaleDateString('id-ID',{weekday:'short',day:'numeric'}),count:Math.floor(Math.random()*15)+3});}
   const filteredRows = filterRowsForUser(rows);
   setMasterData(filteredRows);
   renderStats(recomputeStatsFromRows(globalData));
@@ -4515,11 +4171,6 @@ function renderDemoData(){
 
 // ── MODAL SUMMARY: KLIK JENIS LAYANAN ──
 function showLayananSummary(svcKey){
-  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
-  if(getUserRole() === 'bidang' && svcKey === 'Reimburse Biaya'){
-    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
-    return;
-  }
   const cfg = SVC_CONFIG.find(c=>c.key===svcKey);
   if(!cfg) return;
   const rows = globalData.filter(r=>r['Jenis Layanan']===svcKey);
@@ -4634,12 +4285,6 @@ function showBidangSummary(bidKey){
 
 // ── HALAMAN DETAIL TUNGGAL (dari sidebar): Layanan — chart + stat card + list, khusus 1 jenis layanan ──
 function renderLayananSinglePage(svcKey){
-  // Guard: role 'bidang' tidak boleh mengakses layanan Reimburse Biaya
-  if(getUserRole() === 'bidang' && svcKey === 'Reimburse Biaya'){
-    showToast('Anda tidak memiliki akses ke layanan ini', 'error');
-    switchTab('utama', null);
-    return;
-  }
   const cfg = SVC_CONFIG.find(c=>c.key===svcKey);
   if(!cfg) return;
   const rows = globalData.filter(r=>r['Jenis Layanan']===svcKey);
@@ -4694,7 +4339,7 @@ function renderLayananSinglePage(svcKey){
         }
       },
       scales:{
-        y:{beginAtZero:true, grace:'15%', grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', precision:0}},
+        y:{beginAtZero:true, grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', precision:0}},
         x:{grid:{display:false}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8'}}
       }
     }
@@ -4719,7 +4364,7 @@ function renderLayananSinglePage(svcKey){
         }
       },
       scales:{
-        y:{beginAtZero:true, grace:'15%', grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', callback:v=>formatBiaya(v)}},
+        y:{beginAtZero:true, grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', callback:v=>formatBiaya(v)}},
         x:{grid:{display:false}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8'}}
       }
     }
@@ -4788,7 +4433,7 @@ function renderBidangSinglePage(bidKey){
         }
       },
       scales:{
-        y:{beginAtZero:true, grace:'15%', grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', precision:0}},
+        y:{beginAtZero:true, grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', precision:0}},
         x:{grid:{display:false}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8'}}
       }
     }
@@ -4813,7 +4458,7 @@ function renderBidangSinglePage(bidKey){
         }
       },
       scales:{
-        y:{beginAtZero:true, grace:'15%', grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', callback:v=>formatBiaya(v)}},
+        y:{beginAtZero:true, grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', callback:v=>formatBiaya(v)}},
         x:{grid:{display:false}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8'}}
       }
     }
@@ -4856,41 +4501,6 @@ function renderBidangSinglePage(bidKey){
       }
     }
   });
-  // Chart bar: Biaya Konsumsi Khusus per Bulan (Jan - Des), berdasarkan tahun terbaru
-  // yang muncul pada data (atau tahun berjalan jika belum ada data sama sekali)
-  const kkBiayaPerBulan = new Array(12).fill(0);
-  let kkChartYear = new Date().getFullYear();
-  const kkYearsAvailable = new Set();
-  kkRows.forEach(r=>{
-    const d = new Date(r['Timestamp']);
-    if(!isNaN(d.getTime())) kkYearsAvailable.add(d.getFullYear());
-  });
-  if(kkYearsAvailable.size) kkChartYear = Math.max(...kkYearsAvailable);
-  kkRows.forEach(r=>{
-    const d = new Date(r['Timestamp']);
-    if(isNaN(d.getTime()) || d.getFullYear()!==kkChartYear) return;
-    kkBiayaPerBulan[d.getMonth()] += (r['Biaya']||0);
-  });
-  if(sdKkBiayaBulanChart) sdKkBiayaBulanChart.destroy();
-  const kkBiayaBulanCtx = document.getElementById('sdKkBiayaBulanChart').getContext('2d');
-  sdKkBiayaBulanChart = new Chart(kkBiayaBulanCtx, {
-    type:'bar',
-    data:{labels:MONTH_ID.map(m=>m.slice(0,3)),
-      datasets:[{label:`Biaya Konsumsi Khusus ${kkChartYear}`, data:kkBiayaPerBulan,
-        backgroundColor:ctx2=>neuGrad(ctx2,'#2563eb'), borderRadius:8, borderSkipped:false, barPercentage:.6}]},
-    options:{responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:ctx2=>' '+formatBiayaFull(ctx2.parsed.y)}},
-        datalabels:{display:ctx2=>ctx2.dataset.data[ctx2.dataIndex]>0, align:'top', anchor:'end', offset:2,
-          color:'#334155', font:{size:9,weight:'700'}, formatter:v=>formatBiaya(v)}
-      },
-      scales:{
-        x:{grid:{display:false}, border:{display:false}, ticks:{font:{size:10}}},
-        y:{beginAtZero:true, grace:'15%', grid:{color:'#e6ecf5'}, border:{display:false}, ticks:{font:{size:10}, color:'#94a3b8', callback:v=>formatBiaya(v)}}
-      }
-    }
-  });
-
   document.getElementById('sd-kk-tbody').innerHTML = renderSummaryRows(kkRows);
   document.getElementById('sd-kk-row-count').textContent = `${kkTot} data`;
 
@@ -5133,10 +4743,8 @@ function renderSummaryRowsCompact(rows){
     const bid=BIDMAP[r['Bidang']]||{bg:'#64748b',light:'#f1f5f9'};
     const st=r['Status']||'Menunggu';
     const stClass=st==='Selesai'?'selesai':st==='Dalam Proses'?'proses':st==='Ditolak'?'ditolak':'menunggu';
-    const dl=getDeadlineInfo(r);
-    const rowClass=dl?` ${dl.cls}`:'';
-    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
+    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -5156,10 +4764,8 @@ function renderSummaryRowsBidangCompact(rows){
     const svc=SVCMAP[r['Jenis Layanan']]||{icon:'fa-question',bg:'#f1f5f9',color:'#64748b'};
     const st=r['Status']||'Menunggu';
     const stClass=st==='Selesai'?'selesai':st==='Dalam Proses'?'proses':st==='Ditolak'?'ditolak':'menunggu';
-    const dl=getDeadlineInfo(r);
-    const rowClass=dl?` ${dl.cls}`:'';
-    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
+    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -5187,16 +4793,14 @@ function renderSummaryRows(rows){
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
     const expandId=`expand-srl-${idx}`;
     const itemsHTML=renderItemsMini(r);
-    const dl=getDeadlineInfo(r);
-    const rowClass=dl?` ${dl.cls}`:'';
-    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
       <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${tglDibuat}</td>
-      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
+      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}</td>
       <td style="font-size:11px;color:${tglSelesaiRaw?'var(--green)':'var(--muted)'};white-space:nowrap;font-weight:${tglSelesaiRaw?'600':'400'};">${tglSelesaiDisplay}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
       <td style="white-space:nowrap;"><button class="row-toggle-btn" onclick="event.stopPropagation();toggleItemsRow(this,'${expandId}')"><i class="fas fa-list" style="font-size:9px;margin-right:3px;"></i>Items</button></td>
@@ -5227,16 +4831,14 @@ function renderSummaryRowsBidang(rows){
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
     const expandId=`expand-srb-${idx}`;
     const itemsHTML=renderItemsMini(r);
-    const dl=getDeadlineInfo(r);
-    const rowClass=dl?` ${dl.cls}`:'';
-    return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
+    return `<tr class="tr-main-row" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
       <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td><span class="prio ${prioClass}">${prio}</span></td>
       <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${tglDibuat}</td>
-      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
+      <td style="${tglDibutuhkanStyle}white-space:nowrap;"><i class="fas fa-calendar-check" style="font-size:9px;margin-right:3px;"></i>${tglDibutuhkan}</td>
       <td style="font-size:11px;color:${tglSelesaiRaw?'var(--green)':'var(--muted)'};white-space:nowrap;font-weight:${tglSelesaiRaw?'600':'400'};">${tglSelesaiDisplay}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
       <td style="white-space:nowrap;"><button class="row-toggle-btn" onclick="event.stopPropagation();toggleItemsRow(this,'${expandId}')"><i class="fas fa-list" style="font-size:9px;margin-right:3px;"></i>Items</button></td>
@@ -5254,7 +4856,7 @@ document.getElementById('summary-modal').addEventListener('click',function(e){ i
 
 // ── FORM BUAT PERMINTAAN (terintegrasi format Google Sheets) ──
 function openRequestForm(){
-  const svcOptions = visibleSvcConfig().map(c=>`<option value="${c.key}">${c.key}</option>`).join('');
+  const svcOptions = SVC_CONFIG.map(c=>`<option value="${c.key}">${c.key}</option>`).join('');
   const bidOptions = BIDANG_CONFIG.map(c=>`<option value="${c.key}">${c.key} — ${c.label}</option>`).join('');
 
   document.getElementById('form-modal-content').innerHTML = `
@@ -5763,117 +5365,6 @@ function exportToSheets(){
 // Close modal on overlay click
 document.getElementById('gs-modal').addEventListener('click',function(e){ if(e.target===this) closeGSConfig(); });
 
-
-// ══════════════════════════════════════════════════════════════════════
-// PENGATURAN AKUN
-// ══════════════════════════════════════════════════════════════════════
-function openSettings(){
-  const u = window.AUTH_USER || {};
-  document.getElementById('sett-username').value = u.username || '';
-  document.getElementById('sett-nama').value     = u.nama     || u.username || '';
-  document.getElementById('sett-email').value    = u.email    || '';
-  document.getElementById('sett-telepon').value  = u.telepon  || '';
-  document.getElementById('sett-bidang').value   = u.bidang   || '';
-  // reset password fields
-  ['sett-pw-lama','sett-pw-baru','sett-pw-konfirm'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  settingsStatus('');
-  document.getElementById('settings-modal').classList.add('show');
-}
-
-function closeSettings(){
-  document.getElementById('settings-modal').classList.remove('show');
-}
-
-function toggleSettPw(inputId, btn){
-  const inp = document.getElementById(inputId);
-  const icon = btn.querySelector('i');
-  if(inp.type === 'password'){
-    inp.type = 'text';
-    icon.className = 'fas fa-eye-slash';
-  } else {
-    inp.type = 'password';
-    icon.className = 'fas fa-eye';
-  }
-}
-
-function settingsStatus(msg, type){
-  const el = document.getElementById('settings-status');
-  el.className = 'settings-status' + (type ? ' ' + type : '');
-  el.textContent = msg || '';
-}
-
-async function saveSettings(){
-  const u = window.AUTH_USER || {};
-  const email   = document.getElementById('sett-email').value.trim();
-  const telepon = document.getElementById('sett-telepon').value.trim();
-  const bidang  = document.getElementById('sett-bidang').value;
-  const pwLama  = document.getElementById('sett-pw-lama').value;
-  const pwBaru  = document.getElementById('sett-pw-baru').value;
-  const pwConfirm = document.getElementById('sett-pw-konfirm').value;
-
-  // Validasi password
-  if(pwBaru || pwLama || pwConfirm){
-    if(!pwLama){ settingsStatus('Isi password lama untuk mengganti password.', 'error'); return; }
-    if(pwBaru.length < 6){ settingsStatus('Password baru minimal 6 karakter.', 'error'); return; }
-    if(pwBaru !== pwConfirm){ settingsStatus('Konfirmasi password tidak cocok.', 'error'); return; }
-  }
-
-  const payload = {
-    action   : 'updateUser',
-    username : u.username,
-    email    : email,
-    telepon  : telepon,
-    bidang   : bidang,
-  };
-  if(pwBaru){ payload.oldPassword = pwLama; payload.newPassword = pwBaru; }
-
-  // Mode offline / demo (tanpa Apps Script)
-  if(!APPS_SCRIPT_URL || !APPS_SCRIPT_URL.includes('script.google.com')){
-    // Simpan sementara ke AUTH_USER saja
-    window.AUTH_USER = Object.assign({}, u, { email, telepon, bidang });
-    document.getElementById('user-role').textContent =
-      bidang ? (window.AUTH_USER.role === 'pegawai' ? 'Pegawai' : 'Bidang ' + bidang)
-             : document.getElementById('user-role').textContent;
-    settingsStatus('✔ Perubahan disimpan secara lokal (mode demo — tidak terhubung ke Google Sheets).', 'success');
-    return;
-  }
-
-  // Mode online
-  document.getElementById('sett-save-btn').disabled = true;
-  settingsStatus('Menyimpan perubahan…', 'loading');
-  try {
-    const res = await postToAppsScript(payload);
-    if(res && res.success){
-      // Update AUTH_USER lokal
-      window.AUTH_USER = Object.assign({}, u, { email, telepon, bidang });
-      settingsStatus('✔ ' + (res.message || 'Profil berhasil diperbarui.'), 'success');
-      // Reset password fields
-      ['sett-pw-lama','sett-pw-baru','sett-pw-konfirm'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      // Refresh sidebar role label jika bidang berubah
-      if(bidang !== u.bidang){
-        const roleEl = document.getElementById('user-role');
-        if(roleEl && !isPegawai() && !isAdminUser()){
-          roleEl.textContent = 'Bidang ' + bidang;
-        }
-      }
-    } else {
-      settingsStatus('✖ ' + (res && res.error ? res.error : 'Gagal menyimpan. Coba lagi.'), 'error');
-    }
-  } catch(e){
-    settingsStatus('✖ Koneksi gagal: ' + e.message, 'error');
-  } finally {
-    document.getElementById('sett-save-btn').disabled = false;
-  }
-}
-
-document.getElementById('settings-modal').addEventListener('click', function(e){
-  if(e.target === this) closeSettings();
-});
-
 // ── INIT ──
 function initAuthUI(){
   const u = window.AUTH_USER || {};
@@ -5886,8 +5377,7 @@ function initAuthUI(){
   const roleTagMap = {
     supervisor: 'Supervisor Administrasi (akses penuh)',
     senior_admin: 'Supervisor Senior Administrasi (akses penuh)',
-    manager: 'Manager Administrasi (akses penuh)',
-    pegawai: 'Pegawai'
+    manager: 'Manager Administrasi (akses penuh)'
   };
   const roleKey = getUserRole();
   document.getElementById('user-role').textContent =
@@ -5902,89 +5392,13 @@ function initAuthUI(){
       now.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   }
 
-  // ── Role PEGAWAI: batasi akses hanya ke layanan yang diizinkan ──
-  if(isPegawai()){
-    // Sembunyikan menu sidebar layanan yang TIDAK diizinkan
-    document.querySelectorAll('#grp-layanan .menu-item').forEach(btn => {
-      const onclk = btn.getAttribute('onclick') || '';
-      const match = onclk.match(/openLayananFromSidebar\('([^']+)'/);
-      if(match && PEGAWAI_ALLOWED_LAYANAN.indexOf(match[1]) === -1){
-        btn.style.display = 'none';
-      }
-    });
-    // Sembunyikan seluruh menu grup Bidang
-    const bidangMenuHeader = document.getElementById('bidang-menu-header');
-    if(bidangMenuHeader) bidangMenuHeader.closest('.menu-group').style.display = 'none';
-    // Sembunyikan tab Bidang di tab-nav
-    const tabBidang = document.getElementById('tab-btn-bidang');
-    if(tabBidang) tabBidang.style.display = 'none';
-    // Sembunyikan tombol konfigurasi Google Sheets dan export (hanya admin/bidang)
-    document.querySelectorAll('.icon-btn[onclick*="openGSConfig"]').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.export-btn').forEach(el => el.style.display = 'none');
-    // Sembunyikan period-bar (filter periode — tidak relevan untuk pegawai)
-    const periodBar = document.querySelector('.period-bar');
-    if(periodBar) periodBar.style.display = 'none';
-
-    // ── Sembunyikan semua section chart & data di panel-utama yang tidak relevan ──
-    const hideIds = [
-      'section-svc-head',            // Permintaan per Jenis Layanan (header)
-      'svc-grid',                    // Permintaan per Jenis Layanan (cards)
-      'section-bidang-head',         // Permintaan per Bidang (header)
-      'bidang-grid',                 // Permintaan per Bidang (cards)
-      'section-trend-donut',         // Tren + Donut Status
-      'section-bar-top',             // Bar Bidang Stacked + Top Pemohon
-      'section-biaya-bidang',        // Biaya per Bidang
-      'section-gauge',               // Lama Pemenuhan per Bidang (speedometer)
-      'section-konsumsi-khusus',     // Konsumsi Khusus per Bidang
-      'section-konsumsi-khusus-biaya', // Biaya Konsumsi Khusus per Bidang
-    ];
-    hideIds.forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.style.display = 'none';
-    });
-
-    // Sembunyikan filter layanan yang tidak diizinkan di panel layanan (delayed)
-    setTimeout(function(){
-      document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(btn => {
-        const onclk = btn.getAttribute('onclick') || '';
-        const match = onclk.match(/filterLayanan\('([^']+)'/);
-        if(match && PEGAWAI_ALLOWED_LAYANAN.indexOf(match[1]) === -1){
-          btn.style.display = 'none';
-        }
-      });
-    }, 500);
-    return;
-  }
-
-  // Non-admin (bidang biasa): hanya tampilkan menu bidangnya sendiri, sembunyikan bidang lain
+  // Non-admin: hanya tampilkan menu bidangnya sendiri, sembunyikan bidang lain
   if(!admin){
     document.querySelectorAll('#bidang-menu-items .menu-item').forEach(btn=>{
       if(btn.dataset.bidang !== u.bidang) btn.style.display = 'none';
     });
     const label = document.getElementById('bidang-menu-label');
     if(label) label.textContent = 'Bidang Saya';
-  }
-
-  // ── Role BIDANG: tidak boleh melihat/mengakses layanan Reimburse Biaya ──
-  if(getUserRole() === 'bidang'){
-    // Sembunyikan menu sidebar "Reimburse Biaya"
-    document.querySelectorAll('#grp-layanan .menu-item').forEach(btn => {
-      const onclk = btn.getAttribute('onclick') || '';
-      const match = onclk.match(/openLayananFromSidebar\('([^']+)'/);
-      if(match && match[1] === 'Reimburse Biaya'){
-        btn.style.display = 'none';
-      }
-    });
-    // Sembunyikan tombol filter "Reimburse Biaya" di tab Layanan (delayed, sama seperti pegawai)
-    setTimeout(function(){
-      document.querySelectorAll('#layanan-filter-bar .filter-btn').forEach(btn => {
-        const onclk = btn.getAttribute('onclick') || '';
-        const match = onclk.match(/filterLayanan\('([^']+)'/);
-        if(match && match[1] === 'Reimburse Biaya'){
-          btn.style.display = 'none';
-        }
-      });
-    }, 500);
   }
 }
 
