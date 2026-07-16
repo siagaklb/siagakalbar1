@@ -71,16 +71,6 @@
   .modal-btns .save{background:var(--primary-light);color:#fff;}
 
   @media(max-width:760px){.login-wrap{grid-template-columns:1fr;}.login-side{display:none;}}
-  @media(max-width:480px){
-    body{padding:12px;}
-    .login-wrap{border-radius:14px;}
-    .login-form-area{padding:28px 20px;}
-    .login-form-area h2{font-size:20px;}
-    .btn-login{width:100%;}
-  }
-  @media(max-width:360px){
-    .login-form-area{padding:22px 16px;}
-  }
 </style>
 </head>
 <body>
@@ -148,7 +138,7 @@
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 
-let APPS_SCRIPT_URL = localStorage.getItem('gs_url') || 'https://script.google.com/macros/s/AKfycbyss4DjNCdTGF0xcMURyWsXS83TtpbVt6jcFw00YEp-RMUvQgN3MXvULQkCbLAmJe4YTg/exec';
+let APPS_SCRIPT_URL = localStorage.getItem('gs_url') || '';
 updateGsStatus();
 
 function updateGsStatus(){
