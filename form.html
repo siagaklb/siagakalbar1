@@ -539,8 +539,17 @@
           <label for="f-tanggal">Tanggal Dibutuhkan <span class="req">*</span></label>
           <input type="date" id="f-tanggal">
           <span class="err-msg" id="e-tanggal">Tanggal wajib diisi</span>
+          <label style="display:flex;align-items:center;gap:7px;margin-top:9px;font-weight:500;font-size:12.5px;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="f-multihari" onchange="toggleMultiHari(this.checked)" style="width:15px;height:15px;cursor:pointer;">
+            Permintaan ini untuk lebih dari 1 hari (rentang tanggal)
+          </label>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="wrap-tanggal-selesai" style="display:none;">
+          <label for="f-tanggal-selesai">Sampai Tanggal <span class="req">*</span></label>
+          <input type="date" id="f-tanggal-selesai">
+          <span class="err-msg" id="e-tanggal-selesai">Tanggal selesai wajib diisi dan tidak boleh sebelum tanggal mulai</span>
+        </div>
+        <div class="form-group" id="wrap-lokasi">
           <label for="f-lokasi">Lokasi / Tujuan</label>
           <input type="text" id="f-lokasi" placeholder="Contoh: Ruang Rapat Lt. 3 / Jakarta">
         </div>
@@ -639,7 +648,7 @@ let currentStep = 1;
 let formData = {
   nama:'', nip:'', telepon:'', email:'',
   bidang:'', layanan:'', prioritas:'',
-  deskripsi:'', tanggal:'', lokasi:'', biaya:0, catatan:'',
+  deskripsi:'', tanggal:'', tanggalSelesai:'', multiHari:false, lokasi:'', biaya:0, catatan:'',
   files: [],   // array of {name, type, size, base64}
   // list pengajuan umum (non-Reimburse): {tanggal, item, qty, biaya}
   items: [],
@@ -808,6 +817,27 @@ function validateStep2(){
   return ok;
 }
 
+function toggleMultiHari(checked){
+  formData.multiHari = checked;
+  document.getElementById('wrap-tanggal-selesai').style.display = checked ? 'block' : 'none';
+  if(!checked){
+    document.getElementById('f-tanggal-selesai').value = '';
+    document.getElementById('e-tanggal-selesai').classList.remove('show');
+    document.getElementById('f-tanggal-selesai').classList.remove('err');
+  } else {
+    syncTanggalSelesaiMin();
+  }
+}
+function syncTanggalSelesaiMin(){
+  const start = document.getElementById('f-tanggal').value;
+  const endInput = document.getElementById('f-tanggal-selesai');
+  if(start){
+    endInput.min = start;
+    if(endInput.value && endInput.value < start) endInput.value = '';
+  }
+}
+document.getElementById('f-tanggal').addEventListener('change', syncTanggalSelesaiMin);
+
 function validateStep3(){
   let ok=true;
   const fields=[
@@ -824,6 +854,20 @@ function validateStep3(){
   formData.lokasi   = document.getElementById('f-lokasi').value.trim();
   formData.biaya    = parseInt(document.getElementById('f-biaya').value) || 0;
   formData.catatan  = document.getElementById('f-catatan').value.trim();
+
+  if(formData.multiHari){
+    const tglSelesai = document.getElementById('f-tanggal-selesai').value;
+    const errEl = document.getElementById('e-tanggal-selesai');
+    const inpEl = document.getElementById('f-tanggal-selesai');
+    if(!tglSelesai || (formData.tanggal && tglSelesai < formData.tanggal)){
+      errEl.classList.add('show'); inpEl.classList.add('err'); ok=false;
+    } else {
+      errEl.classList.remove('show'); inpEl.classList.remove('err');
+      formData.tanggalSelesai = tglSelesai;
+    }
+  } else {
+    formData.tanggalSelesai = '';
+  }
 
   if(formData.layanan === 'Reimburse Biaya'){
     const rbFields=[
@@ -1214,7 +1258,9 @@ function pickPrio(el){
 function buildSummary(){
   const BIDMAP = {HAR:'Pemeliharaan',OPS:'Operasi',ENG:'Engineering',K3L:'K3 & Lingkungan',PBJ:'Pengadaan',ADM:'Administrasi'};
   const PRIOCOLOR = {Tinggi:'#ef4444',Sedang:'#3b82f6',Rendah:'#10b981'};
-  const tanggalFmt = formData.tanggal ? new Date(formData.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '–';
+  const tanggalFmt = formData.tanggal ? new Date(formData.tanggal+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '–';
+  const tanggalSelesaiFmt = formData.tanggalSelesai ? new Date(formData.tanggalSelesai+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '';
+  const tanggalRangeFmt = (formData.multiHari && tanggalSelesaiFmt) ? `${tanggalFmt} s/d ${tanggalSelesaiFmt}` : tanggalFmt;
 
   document.getElementById('summary-grid').innerHTML = `
     <div class="sum-item"><label>Nama Pemohon</label><p>${formData.nama}</p></div>
@@ -1228,7 +1274,7 @@ function buildSummary(){
     <div class="sum-item"><label>Prioritas</label>
       <p><span style="color:${PRIOCOLOR[formData.prioritas]};font-weight:700;">● ${formData.prioritas}</span></p>
     </div>
-    <div class="sum-item"><label>Tanggal Dibutuhkan</label><p>${tanggalFmt}</p></div>
+    <div class="sum-item"><label>Tanggal Dibutuhkan</label><p>${tanggalRangeFmt}</p></div>
     <div class="sum-item"><label>Estimasi Biaya</label><p style="color:#92400e;font-weight:700;">${formatRpFull(formData.biaya)}</p></div>
     <div class="sum-item full"><label>Deskripsi Kebutuhan</label><p>${formData.deskripsi}</p></div>
     ${formData.lokasi?`<div class="sum-item"><label for="f-lokasi">Lokasi / Tujuan</label><p>${formData.lokasi}</p></div>`:''}
@@ -1257,70 +1303,142 @@ function buildSummary(){
 // dikunci dengan LockService supaya tidak pernah tabrakan walau ada 2 pengajuan
 // bersamaan). Field 'ID' dikirim kosong sebagai placeholder — nilai aslinya
 // dibaca dari respons server (res.id) di submitForm().
-function buildRowPayload(){
+const GENERIC_PENGAJUAN_LAYANAN = ['Konsumsi Khusus','Konsumsi Kegiatan','ATK','Fasilitas Kerja'];
+
+// Daftar tanggal (yyyy-mm-dd) dari formData.tanggal s/d formData.tanggalSelesai (inklusif).
+// Kalau bukan mode multi-hari, hasilnya cukup 1 elemen: [formData.tanggal].
+function getDateListForSubmit(){
+  if(!formData.multiHari || !formData.tanggalSelesai) return [formData.tanggal];
+  const list = [];
+  let d = new Date(formData.tanggal + 'T00:00:00');
+  const end = new Date(formData.tanggalSelesai + 'T00:00:00');
+  while(d <= end){
+    list.push(d.toISOString().split('T')[0]);
+    d.setDate(d.getDate()+1);
+  }
+  return list.length ? list : [formData.tanggal];
+}
+
+// Rincian item untuk layanan yang SUDAH punya tanggal per baris (Reimburse/Kendaraan/Ruang Meeting):
+// hanya item yang tanggalnya cocok dengan `dateStr` yang diikutkan pada baris hari itu.
+// Untuk layanan yang belum punya tanggal per item (List Pengajuan generik & Perbaikan Sipil):
+// semua item digandakan sama persis ke tiap baris hari (sesuai kesepakatan).
+function getItemsAndBiayaForDate(dateStr){
+  const layanan = formData.layanan;
+  if(layanan === 'Reimburse Biaya'){
+    const items = formData.rbItems.filter(it=>it.tanggal===dateStr && it.deskripsi && it.biaya>0);
+    return { items, biaya: items.reduce((s,it)=>s+(Number(it.biaya)||0),0) };
+  }
+  if(layanan === 'Kendaraan'){
+    const items = formData.kendaraanItems.filter(it=>it.tanggalPemakaian===dateStr && it.kendaraan && it.qty>0 && it.keperluan);
+    return { items, biaya: formData.biaya || 0 };
+  }
+  if(layanan === 'Ruang Meeting'){
+    const items = formData.ruangMeetingItems.filter(it=>it.tanggal===dateStr && it.ruang && it.agenda && it.jam && it.peserta>0);
+    return { items, biaya: formData.biaya || 0 };
+  }
+  if(GENERIC_PENGAJUAN_LAYANAN.includes(layanan)){
+    const items = formData.items.filter(it=>it.item && it.biaya>0);
+    return { items, biaya: items.reduce((s,it)=>s+(Number(it.biaya)||0),0) };
+  }
+  if(layanan === 'Perbaikan Sipil'){
+    const items = formData.sipilItems.filter(it=>it.area && it.detail && it.biaya>0);
+    return { items, biaya: items.reduce((s,it)=>s+(Number(it.biaya)||0),0) };
+  }
+  return { items: [], biaya: formData.biaya || 0 };
+}
+
+// Bangun payload row untuk SATU tanggal (dipakai baik permintaan 1 hari maupun tiap baris
+// dari permintaan multi-hari). `opts` = {dayIdx, totalDays, parentId, useExplicitId}
+function buildRowPayload(dateStr, opts){
+  opts = opts || {};
   const now = new Date();
+  const tglFmt = dateStr
+    ? new Date(dateStr + 'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
+    : '';
+
+  const isMulti = !!(opts.totalDays && opts.totalDays > 1);
+  const { items: itemsHariIni, biaya: biayaHariIni } = getItemsAndBiayaForDate(dateStr);
+
   const deskripsiLengkap = [
     formData.deskripsi,
+    isMulti ? `Bagian dari permintaan multi-hari (Hari ${opts.dayIdx} dari ${opts.totalDays})` : '',
     formData.lokasi ? `Lokasi/Tujuan: ${formData.lokasi}` : '',
     formData.catatan ? `Catatan: ${formData.catatan}` : ''
   ].filter(Boolean).join(' | ');
 
-  // Format tanggal dibutuhkan ke format Indonesia agar konsisten dengan dashboard
-  // Input date HTML memberikan nilai "YYYY-MM-DD"; kita ubah ke "DD Bulan YYYY"
-  const tglDibutuhkanFmt = formData.tanggal
-    ? new Date(formData.tanggal + 'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
-    : '';
+  const idForRow = (opts.useExplicitId && opts.parentId) ? `${opts.parentId}-${opts.dayIdx}` : '';
 
-  // files dipisah dari row agar tidak ikut tersimpan sebagai teks di Sheet
+  // files dipisah dari row agar tidak ikut tersimpan sebagai teks di Sheet.
+  // Untuk baris ke-2 dst pada permintaan multi-hari, file TIDAK diupload ulang —
+  // link lampiran hasil upload di baris pertama diteruskan lewat opts.lampiranStr.
   return {
     row: {
-      'ID': '', // diisi server — lihat catatan di atas buildRowPayload()
+      'ID': idForRow, // kosong = server auto-generate; terisi = server pakai apa adanya (lihat opts.useExplicitId)
+      'ID Induk': opts.parentId || '',
+      'Hari Ke': isMulti ? opts.dayIdx : '',
+      'Total Hari': isMulti ? opts.totalDays : '',
       'Jenis Layanan': formData.layanan,
       'Bidang': formData.bidang,
       'Nama Pemohon': formData.nama,
       'NIP': formData.nip,
       'Status': 'Menunggu',
       'Prioritas': formData.prioritas,
-      'Biaya': formData.biaya || 0,
+      'Biaya': biayaHariIni || 0,
       'Deskripsi': deskripsiLengkap,
       'Telepon': formData.telepon,
       'Email': formData.email || '',
-      'Tanggal Dibutuhkan': tglDibutuhkanFmt,
+      'Tanggal Dibutuhkan': tglFmt,
       'Tanggal Selesai': '',
       'Keterangan': formData.deskripsi,
       'Catatan': formData.catatan || '',
       'Dibuat': now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
       'Timestamp': now.toISOString(),
+      'Lampiran': opts.lampiranStr || '',
       // ── List Pengajuan umum (hanya utk 4 layanan generik: Konsumsi Khusus/Kegiatan, ATK, Fasilitas Kerja) ──
-      'Pengajuan Items': ['Konsumsi Khusus','Konsumsi Kegiatan','ATK','Fasilitas Kerja'].includes(formData.layanan)
-        ? JSON.stringify(formData.items.filter(it=>it.item&&it.biaya>0))
+      'Pengajuan Items': GENERIC_PENGAJUAN_LAYANAN.includes(formData.layanan)
+        ? JSON.stringify(itemsHariIni)
         : '',
       // ── Khusus Reimburse Biaya (dipakai untuk mencetak formulir setelah disetujui) ──
       'Reimburse Nama Rekening': formData.layanan==='Reimburse Biaya' ? formData.rbNamaRek : '',
       'Reimburse Nomor Rekening': formData.layanan==='Reimburse Biaya' ? formData.rbNoRek : '',
       'Reimburse Nama Bank': formData.layanan==='Reimburse Biaya' ? formData.rbBank : '',
-      'Reimburse Items': formData.layanan==='Reimburse Biaya'
-        ? JSON.stringify(formData.rbItems.filter(it=>it.tanggal&&it.deskripsi&&it.biaya>0))
-        : '',
+      'Reimburse Items': formData.layanan==='Reimburse Biaya' ? JSON.stringify(itemsHariIni) : '',
       // ── Khusus Perbaikan Sipil (sesuai Form Permintaan Perbaikan Sipil.xlsx, dipakai untuk cetak formulir setelah disetujui) ──
-      'Sipil Items': formData.layanan==='Perbaikan Sipil'
-        ? JSON.stringify(formData.sipilItems.filter(it=>it.area&&it.detail&&it.biaya>0))
-        : '',
+      'Sipil Items': formData.layanan==='Perbaikan Sipil' ? JSON.stringify(itemsHariIni) : '',
       // ── Khusus Kendaraan (sesuai Form_Kendaraan.xlsx) ──
-      'Kendaraan Items': formData.layanan==='Kendaraan'
-        ? JSON.stringify(formData.kendaraanItems.filter(it=>it.kendaraan&&it.qty>0&&it.tanggalPemakaian&&it.keperluan))
-        : '',
+      'Kendaraan Items': formData.layanan==='Kendaraan' ? JSON.stringify(itemsHariIni) : '',
       // ── Khusus Ruang Meeting (sesuai Form_Ruang_Meeting.xlsx) ──
-      'Ruang Meeting Items': formData.layanan==='Ruang Meeting'
-        ? JSON.stringify(formData.ruangMeetingItems.filter(it=>it.ruang&&it.agenda&&it.tanggal&&it.jam&&it.peserta>0))
-        : ''
+      'Ruang Meeting Items': formData.layanan==='Ruang Meeting' ? JSON.stringify(itemsHariIni) : ''
     },
-    files: formData.files.map(f=>({ name: f.name, type: f.type, base64: f.base64 }))
+    files: opts.includeFiles ? formData.files.map(f=>({ name: f.name, type: f.type, base64: f.base64 })) : [],
+    useExplicitId: !!opts.useExplicitId
   };
 }
 
+// Kirim 1 payload row ke Apps Script, dibungkus Promise (dipakai baik utk submit
+// 1 hari maupun dipanggil berkali-kali secara berurutan pada permintaan multi-hari).
+function sendRowToServer(payload){
+  return new Promise((resolve, reject)=>{
+    const bodyStr = JSON.stringify({ action:'addRow', useExplicitId: payload.useExplicitId, ...payload });
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', APPS_SCRIPT_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+    xhr.timeout = 60000;
+    xhr.onload = function(){
+      let res = null;
+      try { res = JSON.parse(xhr.responseText); } catch(e) { /* non-JSON, anggap sukses */ }
+      if(res && res.success === false){ reject(new Error(res.error || res.message || 'Gagal menyimpan')); return; }
+      resolve(res || {});
+    };
+    xhr.onerror = function(){ reject(new Error('Gagal menghubungi server. Periksa koneksi atau konfigurasi Apps Script.')); };
+    xhr.ontimeout = function(){ reject(new Error('Waktu habis (60 detik). File mungkin terlalu besar atau koneksi lambat.')); };
+    xhr.send(bodyStr);
+  });
+}
+
 // ── Submit ──
-function submitForm(){
+async function submitForm(){
   if(!document.getElementById('f-confirm').checked){
     alert('Centang pernyataan konfirmasi terlebih dahulu.');
     return;
@@ -1329,56 +1447,51 @@ function submitForm(){
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
   const fileCount = formData.files.length;
-  btn.innerHTML = `<span class="spinner"></span> ${fileCount ? 'Mengupload '+fileCount+' file & mengirim...' : 'Mengirim...'}`;
 
-  const payload = buildRowPayload();
+  const dateList = getDateListForSubmit();
+  const isMulti = dateList.length > 1;
 
   if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('GANTI_DENGAN_URL')){
     // Mode demo (belum terhubung Apps Script): tidak ada server utk generate ID asli,
     // jadi tampilkan format placeholder saja (bukan ID final yang tersimpan).
+    btn.innerHTML = `<span class="spinner"></span> ${fileCount ? 'Mengupload '+fileCount+' file & mengirim...' : 'Mengirim...'}`;
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth()+1).padStart(2,'0');
-    setTimeout(()=>{ showSuccess(`REQ-${yyyy}-${mm}0001 (Demo)`); }, 1200);
+    setTimeout(()=>{ showSuccess(`REQ-${yyyy}-${mm}0001 (Demo)${isMulti?' — '+dateList.length+' hari':''}`); }, 1200);
     return;
   }
 
-  // Kirim via XMLHttpRequest — lebih reliable dari fetch() untuk Apps Script
-  // karena XHR handle redirect 302 secara transparan tanpa kehilangan body
-  const bodyStr = JSON.stringify({ action:'addRow', ...payload });
+  try {
+    // ── Hari pertama: kirim seperti biasa (ID auto-generate oleh server, file diupload) ──
+    btn.innerHTML = `<span class="spinner"></span> ${fileCount ? 'Mengupload '+fileCount+' file & mengirim' : 'Mengirim'}${isMulti?` (hari 1/${dateList.length})`:''}...`;
+    const payload1 = buildRowPayload(dateList[0], {
+      dayIdx: 1, totalDays: dateList.length, includeFiles: true
+    });
+    const res1 = await sendRowToServer(payload1);
+    const parentId = res1.id || '';
+    const lampiranStr = (res1.lampiran && res1.lampiran.length) ? res1.lampiran.join(';;') : '';
 
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', APPS_SCRIPT_URL, true);
-  xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-  xhr.timeout = 60000; // 60 detik untuk file besar
-
-  xhr.onload = function() {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Permintaan';
-    let res = null;
-    try { res = JSON.parse(xhr.responseText); } catch(e) { /* non-JSON, anggap sukses */ }
-    if(res && res.success === false){
-      alert('Server error: ' + (res.error || res.message || 'Gagal menyimpan'));
-      return;
+    // ── Hari ke-2 dst (kalau multi-hari): ID eksplisit "{parentId}-{n}", tanpa upload file ulang ──
+    for(let i=1;i<dateList.length;i++){
+      const dayIdx = i+1;
+      btn.innerHTML = `<span class="spinner"></span> Mengirim (hari ${dayIdx}/${dateList.length})...`;
+      const payloadN = buildRowPayload(dateList[i], {
+        dayIdx, totalDays: dateList.length, parentId, useExplicitId: true,
+        includeFiles: false, lampiranStr
+      });
+      await sendRowToServer(payloadN);
     }
-    // ID final (format REQ-YYYY-MM0001) dibuat & dikembalikan oleh server —
-    // fallback ke payload.row['ID'] hanya kalau respons tak berisi id (seharusnya tak terjadi).
-    showSuccess((res && res.id) ? res.id : payload.row['ID']);
-  };
 
-  xhr.onerror = function() {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Permintaan';
-    alert('Gagal menghubungi server. Periksa koneksi atau konfigurasi Apps Script.\n\nPermintaan TIDAK tersimpan.');
-  };
+    showSuccess(isMulti ? `${parentId} (${dateList.length} hari: -1 s/d -${dateList.length})` : (parentId || payload1.row['ID']));
 
-  xhr.ontimeout = function() {
+  } catch(err){
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Permintaan';
-    alert('Waktu habis (60 detik). File mungkin terlalu besar atau koneksi lambat.\n\nCoba kurangi ukuran file atau periksa koneksi.');
-  };
-
-  xhr.send(bodyStr);
+    alert((err && err.message) || 'Gagal menyimpan permintaan.');
+  }
 }
 // ── Integrasi dengan Dashboard (dibuka sebagai iframe di dalam dashboard.html) ──
 // Jika form ini dibuka di dalam iframe dashboard, tombol "Kembali" dan tombol sukses
@@ -1413,7 +1526,11 @@ function showSuccess(id){
 }
 
 function resetForm(){
-  formData={nama:'',nip:'',telepon:'',email:'',bidang:'',layanan:'',prioritas:'',deskripsi:'',tanggal:'',lokasi:'',biaya:0,catatan:'',files:[],items:[],rbNamaRek:'',rbNoRek:'',rbBank:'',rbItems:[],sipilItems:[],kendaraanItems:[],ruangMeetingItems:[]};
+  formData={nama:'',nip:'',telepon:'',email:'',bidang:'',layanan:'',prioritas:'',deskripsi:'',tanggal:'',tanggalSelesai:'',multiHari:false,lokasi:'',biaya:0,catatan:'',files:[],items:[],rbNamaRek:'',rbNoRek:'',rbBank:'',rbItems:[],sipilItems:[],kendaraanItems:[],ruangMeetingItems:[]};
+  document.getElementById('f-multihari').checked=false;
+  document.getElementById('wrap-tanggal-selesai').style.display='none';
+  document.getElementById('f-tanggal-selesai').value='';
+  document.getElementById('e-tanggal-selesai').classList.remove('show');
   document.getElementById('file-list').innerHTML='';
   ['rb-nama-rek','rb-no-rek','rb-bank'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('reimb-tbody').innerHTML='';
