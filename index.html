@@ -1359,7 +1359,7 @@ function logout(){
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>Buat Google Sheet</h4>
-          <p>Buat spreadsheet baru dengan sheet bernama <code>Data</code>. Kolom wajib: <code>ID</code>, <code>Jenis Layanan</code>, <code>Bidang</code>, <code>Nama Pemohon</code>, <code>Status</code>, <code>Prioritas</code>, <code>Biaya</code>, <code>Deskripsi</code>, <code>Dibuat</code>, <code>Timestamp</code>. Kolom opsional (dikirim dari form publik <code>form.html</code>): <code>NIP</code>, <code>Telepon</code>, <code>Email</code>, <code>Tanggal Dibutuhkan</code>.</p>
+          <p>Buat spreadsheet baru dengan sheet bernama <code>Data</code>. Kolom wajib: <code>ID</code>, <code>Jenis Layanan</code>, <code>Bidang</code>, <code>Nama Pemohon</code>, <code>Status</code>, <code>Prioritas</code>, <code>Biaya</code>, <code>Deskripsi</code>, <code>Dibuat</code>, <code>Timestamp</code>. Kolom opsional (dikirim dari form publik <code>form.html</code>): <code>NIP</code>, <code>Telepon</code>, <code>Email</code>, <code>Tanggal Dibutuhkan</code>. Khusus permintaan <b>multi-hari</b>: sistem otomatis menulis <b>beberapa baris</b> (1 baris per tanggal) dengan kolom tambahan <code>ID Induk</code> (sama untuk semua baris dalam 1 permintaan), <code>Hari Ke</code>, dan <code>Total Hari</code> — kolom-kolom ini akan otomatis dibuat di sheet saat data pertama masuk.</p>
           <p style="margin-top:8px;"><b>Sheet otomatis per layanan:</b> setiap permintaan baru (dan setiap perubahannya, mis. status disetujui) otomatis juga disalin/diperbarui ke sheet terpisah sesuai <code>Jenis Layanan</code>-nya (mis. sheet <code>ATK</code>, <code>Kendaraan</code>, <code>Konsumsi Khusus</code>, dst). Sheet-sheet ini dibuat otomatis oleh Apps Script — Anda tidak perlu membuatnya manual. Sheet <code>Data</code> tetap menjadi sumber utama yang dibaca dashboard.</p>
         </div>
       </div>
@@ -1983,12 +1983,21 @@ function processAddRow(payload) {
   //    mengabaikan ID apa pun yang mungkin dikirim dari client, supaya
   //    format konsisten dan tidak pernah tabrakan. Digenerate & ditulis
   //    di dalam LockService supaya aman dari request paralel.
+  // ── ID Permintaan dibuat di server (format REQ-YYYY-MM0001), KECUALI kalau
+  //    client secara eksplisit mengirim payload.useExplicitId=true + ID sudah diisi
+  //    (dipakai untuk baris "sub-hari" pada permintaan multi-hari, misal REQ-2026-070001-2,
+  //    supaya semua baris tetap dalam 1 grup ID Induk yang sama). Auto-generate tetap
+  //    dipakai untuk baris pertama/permintaan biasa, dikunci LockService agar tak tabrakan.
   var lock  = LockService.getScriptLock();
   var reqId;
   lock.waitLock(30000); // tunggu maksimal 30 detik giliran lock
   try {
-    reqId = generateRequestId(sheet, headers);
-    rowData['ID'] = reqId;
+    if (payload.useExplicitId && rowData['ID']) {
+      reqId = rowData['ID'];
+    } else {
+      reqId = generateRequestId(sheet, headers);
+      rowData['ID'] = reqId;
+    }
 
     Logger.log('Jumlah file diterima: ' + files.length + ' (Bidang: ' + bidang + ', REQ: ' + reqId + ')');
 
@@ -2018,7 +2027,7 @@ function processAddRow(payload) {
 
     // 3. Tulis baris ke Sheets
     var newRow = headers.map(function(h) {
-      if (h === 'Lampiran') return lampiranLinks.length > 0 ? lampiranLinks.join(';;') : '';
+      if (h === 'Lampiran') return lampiranLinks.length > 0 ? lampiranLinks.join(';;') : (rowData['Lampiran'] || '');
       return rowData.hasOwnProperty(h) ? rowData[h] : '';
     });
     sheet.appendRow(newRow);
@@ -3309,6 +3318,27 @@ function filterRowsForUser(rows){
 
 // ── FILTER PERIODE (BULAN & TAHUN) — berlaku di tab Utama, Layanan, Bidang ──
 // Berdasarkan kolom 'Timestamp' (tanggal permintaan dibuat/masuk).
+// ── Helper permintaan multi-hari (1 permintaan → beberapa BARIS, 1 per tanggal) ──
+// Baris-baris tsb dikelompokkan lewat kolom 'ID Induk' (sama utk semua baris 1 permintaan),
+// plus 'Hari Ke' / 'Total Hari' untuk info urutan. Baris hari-1 boleh tidak punya 'ID Induk'
+// terisi (fallback ke ID-nya sendiri) karena ID induk baru diketahui setelah baris itu dibuat.
+function getIdInduk(r){
+  return (r && (r['ID Induk'] || r['ID'])) || '';
+}
+function isMultiHari(r){
+  const total = parseInt(r && r['Total Hari'], 10);
+  return !!total && total > 1;
+}
+function formatTglButuhDisplay(r){
+  return (r && r['Tanggal Dibutuhkan']) || '–';
+}
+function multiHariBadgeHTML(r){
+  if(!isMultiHari(r)) return '';
+  const hariKe = r['Hari Ke'] || '?';
+  const total = r['Total Hari'] || '?';
+  return `<span style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:20px;background:#eef2ff;color:#4338ca;font-size:9.5px;font-weight:700;" title="Bagian dari permintaan multi-hari, ID Induk: ${getIdInduk(r)}">Hari ${hariKe}/${total}</span>`;
+}
+
 function parseTglID(str){
   // Parse format Indonesia "04 Juli 2026" -> Date object. Return null jika gagal.
   if(!str) return null;
@@ -4094,7 +4124,7 @@ function renderTable(rows, tbodyId='req-tbody'){
     const prio=r['Prioritas']||'Sedang';
     const prioClass=prio==='Tinggi'?'tinggi':prio==='Rendah'?'rendah':'sedang';
     const biaya=r['Biaya']||0;
-    const tglDibutuhkan=r['Tanggal Dibutuhkan']||'–';
+    const tglDibutuhkan=formatTglButuhDisplay(r);
     const tglDibutuhkanStyle = tglDibutuhkan !== '–'
       ? 'font-size:11.5px;font-weight:600;color:var(--primary-light);'
       : 'font-size:11.5px;color:var(--muted);';
@@ -4127,7 +4157,7 @@ function renderTable(rows, tbodyId='req-tbody'){
       : `<span class="biaya-tag"><i class="fas fa-tag"></i>${formatBiayaFull(biaya)}</span>`;
 
     return `<tr${rowClass}>
-      <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}</td>
+      <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}${multiHariBadgeHTML(r)}</td>
       <td><div class="rsvc">
         <div class="ricon" style="background:${svc.bg};"><i class="fas ${svc.icon}" style="color:${svc.color};"></i></div>
         <div><div class="rtitle">${r['Jenis Layanan']||'–'}</div><div class="rsub">${(r['Deskripsi']||'').substring(0,28)}…</div></div>
@@ -4368,7 +4398,9 @@ function calendarGoToday(){
   renderKalenderTab();
 }
 
-// Ambil requests yang 'Tanggal Dibutuhkan'-nya jatuh di tanggal tertentu (yyyy, monthIdx0based, day)
+// Ambil requests yang 'Tanggal Dibutuhkan'-nya jatuh di tanggal tertentu (yyyy, monthIdx0based, day).
+// Untuk permintaan multi-hari, tiap tanggal SUDAH jadi baris tersendiri di sheet (lihat 'ID Induk'),
+// jadi cukup cocokkan tanggal per baris secara langsung.
 function getRequestsForDate(year, monthIdx, day){
   return masterDataAll.filter(r=>{
     const d = parseTglID(r['Tanggal Dibutuhkan']);
@@ -4537,7 +4569,7 @@ function generateApprovedFormPDF(r){
     ['Nama', r['Nama Pemohon']||'-'],
     ['NIP', r['NIP']||'-'],
     ['Divisi', divisiLabel],
-    ['Tanggal Dibutuhkan', r['Tanggal Dibutuhkan']||'-'],
+    ['Tanggal Dibutuhkan', formatTglButuhDisplay(r)],
   ];
   infoRows.forEach(([label,val])=>{
     doc.setFont('helvetica','bold'); doc.text(label, 14, y);
@@ -4788,7 +4820,7 @@ function renderPersetujuanTab(){
     const st = r['Status']||'Menunggu';
     const stClass = st==='Selesai'?'selesai':st==='Dalam Proses'?'proses':st==='Ditolak'?'ditolak':'menunggu';
     return `<tr>
-      <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}</td>
+      <td style="font-weight:600;color:var(--primary-light);font-size:11.5px;">${r['ID']||'–'}${multiHariBadgeHTML(r)}</td>
       <td style="font-size:11.5px;">${r['Jenis Layanan']||'–'}</td>
       <td style="font-size:11.5px;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;">${r['Bidang']||'–'}</span></td>
@@ -5534,7 +5566,7 @@ function renderSummaryRowsCompact(rows){
     const dl=getDeadlineInfo(r);
     const rowClass=dl?` ${dl.cls}`:'';
     return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${multiHariBadgeHTML(r)}${deadlineTagHTML(dl)}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -5557,7 +5589,7 @@ function renderSummaryRowsBidangCompact(rows){
     const dl=getDeadlineInfo(r);
     const rowClass=dl?` ${dl.cls}`:'';
     return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${deadlineTagHTML(dl)}</td>
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${multiHariBadgeHTML(r)}${deadlineTagHTML(dl)}</td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td data-col="biaya" style="font-size:11px;color:#92400e;font-weight:600;white-space:nowrap;">${formatBiaya(r['Biaya']||0)}</td>
@@ -5579,7 +5611,7 @@ function renderSummaryRows(rows){
     const prio=r['Prioritas']||'Sedang';
     const prioClass=prio==='Tinggi'?'tinggi':prio==='Rendah'?'rendah':'sedang';
     const tglDibuat=r['Dibuat']||'–';
-    const tglDibutuhkan=r['Tanggal Dibutuhkan']||'–';
+    const tglDibutuhkan=formatTglButuhDisplay(r);
     const tglDibutuhkanStyle=tglDibutuhkan!=='–'?'font-size:11px;font-weight:600;color:var(--primary-light);':'font-size:11px;color:var(--muted);';
     const tglSelesaiRaw=r['Tanggal Selesai']||'';
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
@@ -5588,7 +5620,7 @@ function renderSummaryRows(rows){
     const dl=getDeadlineInfo(r);
     const rowClass=dl?` ${dl.cls}`:'';
     return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${multiHariBadgeHTML(r)}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
@@ -5619,7 +5651,7 @@ function renderSummaryRowsBidang(rows){
     const prio=r['Prioritas']||'Sedang';
     const prioClass=prio==='Tinggi'?'tinggi':prio==='Rendah'?'rendah':'sedang';
     const tglDibuat=r['Dibuat']||'–';
-    const tglDibutuhkan=r['Tanggal Dibutuhkan']||'–';
+    const tglDibutuhkan=formatTglButuhDisplay(r);
     const tglDibutuhkanStyle=tglDibutuhkan!=='–'?'font-size:11px;font-weight:600;color:var(--primary-light);':'font-size:11px;color:var(--muted);';
     const tglSelesaiRaw=r['Tanggal Selesai']||'';
     const tglSelesaiDisplay=tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–';
@@ -5628,7 +5660,7 @@ function renderSummaryRowsBidang(rows){
     const dl=getDeadlineInfo(r);
     const rowClass=dl?` ${dl.cls}`:'';
     return `<tr class="tr-main-row${rowClass}" data-rowid="${(r['ID']||'').replace(/"/g,'&quot;')}">
-      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}</td>
+      <td style="font-weight:700;color:var(--primary-light);font-size:11.5px;white-space:nowrap;">${r['ID']||'–'}${multiHariBadgeHTML(r)}</td>
       <td style="font-size:12px;white-space:nowrap;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;">${r['Bidang']||'–'}</span></td>
       <td><div class="rsvc" style="gap:6px;"><div class="ricon" style="background:${svc.bg};width:24px;height:24px;flex-shrink:0;border-radius:6px;"><i class="fas ${svc.icon}" style="color:${svc.color};font-size:10px;"></i></div><span style="font-size:11px;white-space:nowrap;">${r['Jenis Layanan']||'–'}</span></div></td>
@@ -6064,7 +6096,7 @@ function showDetailModal(r){
       <div class="d-icon" style="background:${svc.bg};"><i class="fas ${svc.icon}" style="color:${svc.color};"></i></div>
       <div>
         <h2>${r['Jenis Layanan']||'–'}</h2>
-        <p>ID: <b style="color:var(--primary-light);">${r['ID']||'–'}</b></p>
+        <p>ID: <b style="color:var(--primary-light);">${r['ID']||'–'}</b>${multiHariBadgeHTML(r)}</p>
       </div>
     </div>
     <div class="detail-modal-body">
@@ -6075,7 +6107,7 @@ function showDetailModal(r){
         <div class="detail-item"><label>Prioritas</label><div class="val"><span class="prio ${prioClass}">${prio}</span></div></div>
         <div class="detail-item"><label>Estimasi Biaya</label><div class="val">${formatBiayaFull(biaya)}</div></div>
         <div class="detail-item"><label>Tanggal Dibuat</label><div class="val">${r['Dibuat']||'–'}</div></div>
-        <div class="detail-item"><label><i class="fas fa-calendar-check" style="color:var(--primary-light);margin-right:4px;"></i>Tanggal Dibutuhkan</label><div class="val" style="color:var(--primary-light);font-weight:700;">${r['Tanggal Dibutuhkan']||'–'}</div></div>
+        <div class="detail-item"><label><i class="fas fa-calendar-check" style="color:var(--primary-light);margin-right:4px;"></i>Tanggal Dibutuhkan${isMultiHari(r)?' <span style="font-weight:400;color:var(--muted);font-size:10.5px;">(multi-hari)</span>':''}</label><div class="val" style="color:var(--primary-light);font-weight:700;">${formatTglButuhDisplay(r)}</div></div>
         <div class="detail-item"><label><i class="fas fa-flag-checkered" style="color:#10b981;margin-right:4px;"></i>Tanggal Selesai Pemenuhan</label><div class="val" style="color:#10b981;font-weight:700;">${r['Tanggal Selesai']?fmtTglID(r['Tanggal Selesai']):'Belum selesai'}</div></div>
         <div class="detail-item full"><label>Deskripsi</label><div class="val" style="font-weight:500;">${r['Deskripsi']||'Tidak ada deskripsi'}</div></div>
         <div class="detail-item full"><label>PIC ${isSuperAdmin()?'<span style="color:var(--muted);font-weight:400;">(hanya admin dapat mengubah dari tabel)</span>':''}</label><div class="val" style="font-weight:500;">${r['PIC']||'–'}</div></div>
@@ -6144,7 +6176,7 @@ function copyAppsScript(){
 // ── EXPORT ──
 function exportCSV(){
   if(!globalData.length){ showToast('Belum ada data untuk diekspor','error'); return; }
-  const headers=['ID','Jenis Layanan','Bidang','Nama Pemohon','Status','Prioritas','Dibuat','Tanggal Dibutuhkan','Tanggal Selesai','PIC','Deskripsi'];
+  const headers=['ID','ID Induk','Hari Ke','Total Hari','Jenis Layanan','Bidang','Nama Pemohon','Status','Prioritas','Dibuat','Tanggal Dibutuhkan','Tanggal Selesai','PIC','Deskripsi'];
   const csv=[headers.join(','),...globalData.map(r=>headers.map(h=>`"${(r[h]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
