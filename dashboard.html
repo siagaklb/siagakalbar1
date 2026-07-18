@@ -6384,7 +6384,7 @@ document.getElementById('detail-modal').addEventListener('click',function(e){ if
 // ══════════════════════════════════════════════════════════════════════
 const INSTANSI_BAST = 'PT PLN Indonesia Power Services PLTU Kalbar 1';
 
-// Ambil rincian item request (nama barang + keterangan) sebagai draft awal tabel BAST,
+// Ambil rincian item request (item + qty + satuan + keterangan) sebagai draft awal tabel BAST,
 // disesuaikan field-nya per jenis layanan. Admin tetap bisa edit/tambah/hapus baris di modal.
 function getBastItemDraft(r){
   const jenis = r['Jenis Layanan'];
@@ -6397,20 +6397,21 @@ function getBastItemDraft(r){
     else raw = JSON.parse(r['Pengajuan Items']||'[]');
   }catch(e){ raw = []; }
   const mapped = raw.map(it=>{
-    if(jenis==='Reimburse Biaya') return { nama: it.deskripsi||'', ket: it.nota?`No. Nota: ${it.nota}`:'' };
-    if(jenis==='Perbaikan Sipil') return { nama: it.detail||'', ket: [it.area,it.lokasi].filter(Boolean).join(' - ') };
-    if(jenis==='Kendaraan') return { nama: it.kendaraan||'', ket: it.keperluan||'' };
-    if(jenis==='Ruang Meeting') return { nama: it.ruang||'', ket: it.agenda||'' };
-    return { nama: it.item||'', ket: (it.qty||it.satuan) ? `${it.qty||''} ${it.satuan||''}`.trim() : '' };
-  }).filter(it=>it.nama);
-  return mapped.length ? mapped : [{nama:'',ket:''}];
+    if(jenis==='Reimburse Biaya') return { item: it.deskripsi||'', qty:'', satuan:'', ket: it.nota?`No. Nota: ${it.nota}`:'' };
+    if(jenis==='Perbaikan Sipil') return { item: it.detail||'', qty:'', satuan:'', ket: [it.area,it.lokasi].filter(Boolean).join(' - ') };
+    if(jenis==='Kendaraan') return { item: it.kendaraan||'', qty: it.qty||'', satuan:'', ket: it.keperluan||'' };
+    if(jenis==='Ruang Meeting') return { item: it.ruang||'', qty:'', satuan:'', ket: it.agenda||'' };
+    return { item: it.item||'', qty: it.qty||'', satuan: it.satuan||'', ket:'' };
+  }).filter(it=>it.item);
+  return mapped.length ? mapped : [{item:'',qty:'',satuan:'',ket:''}];
 }
 
-function bastItemRowHTML(i, nama, jabatan, ket){
+function bastItemRowHTML(i, item, qty, satuan, ket){
   return `<tr data-bast-row="${i}">
     <td style="text-align:center;color:var(--muted);padding:5px 6px;">${i+1}</td>
-    <td style="padding:5px 6px;"><input type="text" class="bast-nama" value="${(nama||'').replace(/"/g,'&quot;')}" placeholder="Nama barang" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
-    <td style="padding:5px 6px;"><input type="text" class="bast-jabatan" value="${(jabatan||'').replace(/"/g,'&quot;')}" placeholder="-" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-item" value="${(item||'').replace(/"/g,'&quot;')}" placeholder="Nama item" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-qty" value="${(qty||'').toString().replace(/"/g,'&quot;')}" placeholder="-" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;text-align:center;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-satuan" value="${(satuan||'').replace(/"/g,'&quot;')}" placeholder="-" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;text-align:center;"></td>
     <td style="padding:5px 6px;"><input type="text" class="bast-ket" value="${(ket||'').replace(/"/g,'&quot;')}" placeholder="Keterangan" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
     <td style="text-align:center;padding:5px 6px;"><button type="button" onclick="removeBastItemRow(this)" title="Hapus baris" style="background:none;border:none;color:#ef4444;cursor:pointer;"><i class="fas fa-times"></i></button></td>
   </tr>`;
@@ -6418,8 +6419,13 @@ function bastItemRowHTML(i, nama, jabatan, ket){
 function addBastItemRow(){
   const tbody = document.getElementById('bast-items-tbody');
   const i = tbody.children.length;
-  tbody.insertAdjacentHTML('beforeend', bastItemRowHTML(i,'','',''));
+  tbody.insertAdjacentHTML('beforeend', bastItemRowHTML(i,'','','',''));
 }
+// Catatan: sebelum perbaikan ini, openBastModal() memanggil bastItemRowHTML(i, it.nama, '', it.ket)
+// — hanya 4 argumen padahal fungsi butuh 5 (i, item, qty, satuan, ket). Akibatnya it.ket
+// (argumen ke-4 yang dikirim) tertukar masuk ke parameter `satuan`, dan kolom `ket` selalu
+// kosong. Skema data getBastItemDraft() juga sudah pakai {item, qty, satuan, ket}, bukan
+// {nama, ket} — jadi it.nama pun sebenarnya undefined. Sudah diperbaiki di openBastModal().
 function removeBastItemRow(btn){
   const tbody = document.getElementById('bast-items-tbody');
   if(tbody.children.length <= 1){ showToast('Minimal harus ada 1 baris barang','error'); return; }
@@ -6435,7 +6441,7 @@ function openBastModal(idSafe){
   const tglKalimat = `${DAY_ID[now.getDay()]}, tanggal ${String(now.getDate()).padStart(2,'0')} ${MONTH_ID[now.getMonth()]} ${now.getFullYear()}`;
   const noBastDefault = `___/BAST/PIPS-KLB/${MONTH_ROMAN[now.getMonth()]}/${now.getFullYear()}`;
   const items = getBastItemDraft(r);
-  const itemsRowsHTML = items.map((it,i)=>bastItemRowHTML(i, it.nama, '', it.ket)).join('');
+  const itemsRowsHTML = items.map((it,i)=>bastItemRowHTML(i, it.item, it.qty, it.satuan, it.ket)).join('');
 
   document.getElementById('bast-modal-content').innerHTML = `
     <h2 style="font-size:16px;margin-bottom:4px;"><i class="fas fa-file-signature" style="color:#1e3a8a;margin-right:6px;"></i>Berita Acara Serah Terima</h2>
@@ -6456,14 +6462,16 @@ function openBastModal(idSafe){
         <label style="font-size:11px;color:var(--muted);">Nama</label>
         <input type="text" id="bast-menyerahkan-nama" value="${(u.nama||u.username||'').replace(/"/g,'&quot;')}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
         <label style="font-size:11px;color:var(--muted);">Jabatan</label>
-        <input type="text" id="bast-menyerahkan-jabatan" placeholder="Contoh: Admin GAF" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;">
+        <input type="text" id="bast-menyerahkan-jabatan" placeholder="Contoh: Admin GAF" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <div style="font-size:10.5px;color:var(--muted);">Instansi: ${INSTANSI_BAST}</div>
       </div>
       <div style="border:1px solid var(--border);border-radius:10px;padding:12px;">
         <div style="font-weight:700;font-size:12.5px;margin-bottom:8px;color:#1e3a8a;">Yang Menerima</div>
         <label style="font-size:11px;color:var(--muted);">Nama</label>
         <input type="text" id="bast-menerima-nama" value="${(r['Nama Pemohon']||'').replace(/"/g,'&quot;')}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
         <label style="font-size:11px;color:var(--muted);">Jabatan</label>
-        <input type="text" id="bast-menerima-jabatan" placeholder="Contoh: Staff ${r['Bidang']||''}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;">
+        <input type="text" id="bast-menerima-jabatan" placeholder="Contoh: Staff ${r['Bidang']||''}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <div style="font-size:10.5px;color:var(--muted);">Instansi: ${INSTANSI_BAST}</div>
       </div>
     </div>
 
@@ -6471,8 +6479,9 @@ function openBastModal(idSafe){
     <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:8px;">
       <thead><tr style="background:#eef2ff;color:#1e3a8a;">
         <th style="padding:6px;text-align:left;width:28px;">No</th>
-        <th style="padding:6px;text-align:left;">Nama Barang</th>
-        <th style="padding:6px;text-align:left;">Jabatan</th>
+        <th style="padding:6px;text-align:left;">Item</th>
+        <th style="padding:6px;text-align:left;width:60px;">Qty</th>
+        <th style="padding:6px;text-align:left;width:70px;">Satuan</th>
         <th style="padding:6px;text-align:left;">Keterangan</th>
         <th style="width:28px;"></th>
       </tr></thead>
@@ -6499,10 +6508,11 @@ function generateBastPDF(idSafe){
   const menerimaNama = document.getElementById('bast-menerima-nama').value.trim() || '-';
   const menerimaJabatan = document.getElementById('bast-menerima-jabatan').value.trim() || '-';
   const rows = Array.from(document.querySelectorAll('#bast-items-tbody tr')).map(tr=>({
-    nama: tr.querySelector('.bast-nama').value.trim(),
-    jabatan: tr.querySelector('.bast-jabatan').value.trim(),
+    item: tr.querySelector('.bast-item').value.trim(),
+    qty: tr.querySelector('.bast-qty').value.trim(),
+    satuan: tr.querySelector('.bast-satuan').value.trim(),
     ket: tr.querySelector('.bast-ket').value.trim()
-  })).filter(it=>it.nama || it.jabatan || it.ket);
+  })).filter(it=>it.item || it.qty || it.satuan || it.ket);
 
   if(!rows.length){ showToast('Isi minimal 1 baris barang terlebih dahulu','error'); return; }
 
@@ -6510,28 +6520,28 @@ function generateBastPDF(idSafe){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'mm', format:'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 18;
+    let y = 16;
 
-    // ── Logo (kiri atas, sesuai template asli) ──
+    // ── Logo (di tengah atas, sesuai TEMPLATE_SERAH_TERIMA.docx) ──
     try{
-      const logoW = 34, logoH = logoW * (183/600);
-      doc.addImage(PLN_IPS_LOGO_B64, 'PNG', 14, y, logoW, logoH);
-    }catch(e){ console.warn('Gagal menambahkan logo pada PDF BAST:', e); }
-    y += 22;
+      const logoW = 30, logoH = logoW * (183/600);
+      doc.addImage(PLN_IPS_LOGO_B64, 'PNG', pageWidth/2 - logoW/2, y, logoW, logoH);
+      y += logoH + 6;
+    }catch(e){ console.warn('Gagal menambahkan logo pada PDF BAST:', e); y += 20; }
 
-    // ── Judul & No BAST ──
-    doc.setFont('helvetica','bold'); doc.setFontSize(15);
-    doc.text('BERITA ACARA SERAH TERIMA', pageWidth/2, y, {align:'center'}); y += 6;
-    doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
-    doc.text(`No. ${noBast}`, pageWidth/2, y, {align:'center'}); y += 12;
+    // ── Judul & No BAST (di tengah) ──
+    doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('BERITA ACARA SERAH TERIMA', pageWidth/2, y, {align:'center'}); y += 6.5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    doc.text(`No. ${noBast}`, pageWidth/2, y, {align:'center'}); y += 11;
 
     // ── Kalimat pembuka ──
-    doc.setFontSize(10);
-    const openText = `Pada hari ini ${tglKalimat} yang bertanda tangan dibawah ini :`;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const openText = `Pada Hari ini ${tglKalimat} yang bertanda tangan dibawah ini :`;
     const openLines = doc.splitTextToSize(openText, pageWidth-28);
     doc.text(openLines, 14, y); y += openLines.length*5.5 + 8;
 
-    // ── Blok Yang Menyerahkan / Yang Menerima ──
+    // ── Blok Yang Menyerahkan / Yang Menerima (Instansi tetap, sesuai template) ──
     const writePartyBlock = (title, nama, jabatan) => {
       doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
       doc.text(title, 14, y); y += 7;
@@ -6552,43 +6562,52 @@ function generateBastPDF(idSafe){
     const midLines = doc.splitTextToSize('Telah menyerahkan kepada pihak penerima barang dengan keterangan sebagai berikut :', pageWidth-28);
     doc.text(midLines, 14, y); y += midLines.length*5.5 + 4;
 
-    // ── Tabel barang ──
+    // ── Tabel barang (kolom sesuai template: No, Item, Qty, Satuan, Keterangan) ──
     doc.autoTable({
       startY: y,
-      head: [['No','Nama Barang','Jabatan','Keterangan']],
-      body: rows.map((it,i)=>[i+1, it.nama||'-', it.jabatan||'-', it.ket||'-']),
+      head: [['No','Item','Qty','Satuan','Keterangan']],
+      body: rows.map((it,i)=>[i+1, it.item||'-', it.qty||'-', it.satuan||'-', it.ket||'-']),
       theme: 'grid',
-      headStyles: { fillColor:[30,58,138], fontSize:9 },
+      headStyles: { fillColor:[30,58,138], fontSize:9, halign:'center' },
       styles: { fontSize:9, cellPadding:2.5 },
+      columnStyles: {
+        0: { cellWidth:10, halign:'center' },
+        2: { cellWidth:18, halign:'center' },
+        3: { cellWidth:22, halign:'center' }
+      },
       margin: { left:14, right:14 }
     });
     y = doc.lastAutoTable.finalY + 10;
 
     // ── Kalimat penutup ──
-    if(y > 250){ doc.addPage(); y = 20; }
+    if(y > 245){ doc.addPage(); y = 20; }
     doc.setFontSize(10);
     const closeLines = doc.splitTextToSize('Demikianlah serah terima ini dibuat dengan sebenarnya, besar harapan barang dapat dipergunakan dan dijaga sebagaimana mestinya.', pageWidth-28);
     doc.text(closeLines, 14, y); y += closeLines.length*5.5 + 18;
 
-    // ── Blok tanda tangan ──
-    if(y > 250){ doc.addPage(); y = 20; }
-    const colW = (pageWidth-28)/2;
-    const sigX = [14, 14+colW];
-    const sigLabel = ['Yang menyerahkan :','Yang Menerima :'];
+    // ── Blok tanda tangan — DITENGAHKAN sesuai TEMPLATE_SERAH_TERIMA.docx ──
+    // (bukan menempel penuh ke margin kiri/kanan seperti versi sebelumnya; dua kolom
+    // sempit diposisikan simetris di tengah halaman, seperti tabel 2 kolom pada template).
+    if(y > 245){ doc.addPage(); y = 20; }
+    const sigColW = 68;               // lebar tiap kolom tanda tangan
+    const sigGap  = 14;                // jarak antar kolom
+    const sigBlockW = sigColW*2 + sigGap;
+    const sigStartX = (pageWidth - sigBlockW) / 2;   // titik mulai blok, ditengahkan ke halaman
+    const sigX = [sigStartX, sigStartX + sigColW + sigGap];
+    const sigLabel = ['Yang menyerahkan', 'Yang Menerima'];
     const sigNama = [menyerahkanNama, menerimaNama];
     const sigJabatan = [menyerahkanJabatan, menerimaJabatan];
+
     sigLabel.forEach((lbl,i)=>{
       doc.setFont('helvetica','normal'); doc.setFontSize(10);
-      doc.text(lbl, sigX[i], y);
+      doc.text(lbl, sigX[i] + sigColW/2, y, {align:'center'});
     });
-    const ySign = y + 28;
+    const ySign = y + 26; // ruang kosong untuk tanda tangan basah
     sigNama.forEach((nm,i)=>{
       doc.setFont('helvetica','bold'); doc.setFontSize(10);
-      doc.text(nm, sigX[i], ySign);
-      doc.setLineWidth(0.2);
-      doc.line(sigX[i], ySign+1, sigX[i]+colW-14, ySign+1);
+      doc.text(nm, sigX[i] + sigColW/2, ySign, {align:'center'});
       doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      doc.text(sigJabatan[i]||'', sigX[i], ySign+6);
+      doc.text(sigJabatan[i]||'', sigX[i] + sigColW/2, ySign+5, {align:'center'});
     });
 
     const fname = `BAST_${(r['ID']||'permintaan').replace(/[^a-zA-Z0-9-]/g,'_')}.pdf`;
