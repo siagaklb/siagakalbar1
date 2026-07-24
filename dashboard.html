@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sistem Integrasi Administrasi General Affair</title>
+  <title>Sistem Administrasi General Affair</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -23,10 +23,23 @@
     }
     html{scroll-behavior:smooth;}
     h1,h2,h3,h4{font-family:var(--font-display);letter-spacing:-.01em;}
-    html{background:var(--bg);}
+    html{background:transparent;}
     body{font-family:var(--font-body);background:transparent;color:var(--text);display:flex;min-height:100vh;position:relative;}
     #fx-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block;}
     @media (prefers-reduced-motion: reduce){ #fx-bg{display:none;} }
+
+    /* ══ BACKGROUND GAMBAR DASHBOARD ══ */
+    #page-bg-image{
+      position:fixed;inset:0;width:100%;height:100%;z-index:-2;
+      background-image:url('background-pltu.jpg');
+      background-size:cover;background-position:center bottom;background-repeat:no-repeat;background-attachment:fixed;
+      pointer-events:none;
+    }
+    #page-bg-image::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(10,14,39,.82),rgba(20,27,60,.86) 50%,rgba(10,14,39,.9));
+    }
+    @media(max-width:900px){ #page-bg-image{background-attachment:scroll;} }
 
     /* SIDEBAR */
     .sidebar{width:var(--sidebar-width);background:linear-gradient(180deg,var(--primary-dark),var(--primary));min-height:100vh;position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:100;overflow:hidden;}
@@ -57,8 +70,8 @@
     .main{margin-left:var(--sidebar-width);flex:1;display:flex;flex-direction:column;}
 
     /* TOPBAR */
-    .topbar{background:#fff;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-    .period-bar{background:#fff;padding:10px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:49;flex-wrap:wrap;}
+    .topbar{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(5,15,45,.35);}
+    .period-bar{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);padding:10px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:64px;z-index:49;flex-wrap:wrap;}
     .period-bar-label{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
     .period-select{border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);outline:none;cursor:pointer;background:#fff;}
     .period-select:focus{border-color:var(--primary-light);}
@@ -110,6 +123,8 @@
     .appr-status-chip.rejected{background:#fee2e2;color:#991b1b;}
     .appr-status-chip.na{background:#f1f5f9;color:#94a3b8;}
     .topbar-left{display:flex;align-items:center;gap:10px;}
+    .topbar-logo{height:36px;width:auto;flex-shrink:0;object-fit:contain;}
+    @media(max-width:900px){ .topbar-logo{height:28px;} }
     .topbar-left h1{font-size:17px;font-weight:700;}
     .topbar-left p{font-size:12px;color:var(--muted);}
     .topbar-right{display:flex;align-items:center;gap:10px;}
@@ -121,7 +136,7 @@
     .notif-dot{width:8px;height:8px;background:#ef4444;border-radius:50%;position:absolute;top:5px;right:5px;border:2px solid #fff;}
 
     /* TAB NAV */
-    .tab-nav{background:#fff;border-bottom:2px solid var(--border);padding:0 28px;display:flex;gap:4px;}
+    .tab-nav{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);border-bottom:2px solid rgba(255,255,255,.1);padding:0 28px;display:flex;gap:4px;position:sticky;z-index:48;top:117px;}
     .tab-btn{padding:14px 20px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:8px;transition:all .2s;}
     .tab-btn:hover{color:var(--primary-light);}
     .tab-btn.active{color:var(--primary-light);border-bottom-color:var(--primary-light);}
@@ -650,9 +665,194 @@
     .settings-status.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
     .settings-status.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
     .settings-status.loading{display:block;background:#eff6ff;color:var(--primary-light);border:1px solid #bfdbfe;}
+
+    /* ══════════════════════════════════════════════════════════════
+       PENYEMPURNAAN RESPONSIVE — HP, TABLET, LAPTOP
+       Melengkapi breakpoint yang sudah ada, tanpa mengubah class/id.
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Base: cegah overflow horizontal di semua ukuran layar */
+    html{max-width:100%;overflow-x:hidden;}
+    body{max-width:100%;}
+    img,canvas,svg{max-width:100%;}
+    .main{min-width:0;}
+
+    /* ── TABLET (901px – 1180px): transisi halus antara desktop & mobile ── */
+    @media(max-width:1180px) and (min-width:901px){
+      :root{--sidebar-width:220px;}
+      .stat-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .svc-grid{grid-template-columns:repeat(3,1fr)!important;}
+      .bidang-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .appr-stage-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .g2,.g3,.bidang-chart-section{grid-template-columns:1fr!important;}
+      .detail-grid{grid-template-columns:1fr 1fr!important;}
+      .cal-nav-title{min-width:110px;}
+    }
+
+    /* ── TABLET/HP dalam mode landscape kecil ── */
+    @media(max-width:900px){
+      .sidebar{width:min(var(--sidebar-width),80vw);}
+    }
+
+    /* ── HP kecil (≤380px) ── */
+    @media(max-width:380px){
+      .stat-grid{grid-template-columns:1fr!important;}
+      .svc-grid{grid-template-columns:1fr 1fr!important;}
+      .topbar-left h1{font-size:13px;}
+      .cal-nav-title{min-width:100px;font-size:12px;}
+      .cal-day{min-height:48px;}
+    }
+
+    /* ── Landscape HP: batasi tinggi elemen kalender agar tidak overflow ── */
+    @media(max-height:480px) and (orientation:landscape){
+      .cal-day{min-height:44px;}
+    }
+
+    /* Tabel & konten lebar lain: pastikan bisa discroll di semua layar */
+    @media(max-width:1180px){
+      .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    }
+
+    /* Kartu sedikit translucent supaya tekstur background gambar tetap terasa,
+       tanpa mengurangi keterbacaan konten */
+    .stat-card,.svc-card,.bidang-card,.layanan-big-card,.bidang-big-card,.card,
+    .appr-stage-card,.appr-action-item,.cal-grid-wrap,.form-modal,.detail-modal,
+    .summary-modal,.preview-modal,.modal{
+      background-color:rgba(255,255,255,.94);
+      backdrop-filter:blur(2px);
+    }
+    .sidebar{backdrop-filter:none;}
+
+    /* ══════════════════════════════════════════════════════════════
+       KONTRAS TEKS — Topbar, Period Bar, Tab Nav (kini biru gelap)
+       ══════════════════════════════════════════════════════════════ */
+    .topbar-left h1{background:none!important;-webkit-background-clip:unset;background-clip:unset;color:#fff;}
+    .topbar-left p{color:rgba(255,255,255,.6);}
+    .icon-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.85);}
+    .icon-btn:hover{background:rgba(255,255,255,.18);}
+    .hamburger-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;}
+
+    .period-bar-label{color:#fff;}
+    .period-select{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:#fff;}
+    .period-select option{color:var(--text);background:#fff;}
+    .period-select:focus{border-color:var(--accent);}
+    .period-reset{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+    .period-reset:hover{background:rgba(255,255,255,.18);}
+    .cal-nav-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:#fff;}
+    .cal-nav-btn:hover{background:rgba(255,255,255,.18);}
+    .cal-nav-title{color:#fff;}
+
+    .tab-btn{color:rgba(255,255,255,.6);}
+    .tab-btn:hover{color:#fff;}
+    .tab-btn.active{color:#fff;}
+
+    /* ══ SIDEBAR COLLAPSIBLE (desktop, >900px) ══
+       Sidebar default terbuka penuh (260px). Toggle lewat tombol collapse
+       menyusutkannya jadi strip ikon (64px) dan tetap begitu sampai
+       di-toggle kembali — tidak lagi otomatis melebar saat hover.
+       Diletakkan di akhir agar cascade menang atas aturan .sidebar/.main dasar. */
+    @media(min-width:901px){
+      .sidebar{transition:width .28s cubic-bezier(.4,0,.2,1);}
+      .main{transition:margin-left .28s cubic-bezier(.4,0,.2,1);}
+
+      .sidebar.collapsed{width:64px;overflow:hidden;}
+      body.sidebar-collapsed .main{margin-left:64px!important;}
+
+      .sidebar.collapsed .sidebar-menu{overflow-x:hidden;}
+      .sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0;}
+      .sidebar.collapsed .menu-item i{width:auto;}
+      .sidebar.collapsed .menu-group-header{justify-content:center;padding-left:0;padding-right:0;}
+      .sidebar.collapsed .logo-text,.sidebar.collapsed .menu-label,.sidebar.collapsed .menu-item-label,
+      .sidebar.collapsed .menu-group-header span,.sidebar.collapsed .menu-group-header .chevron,
+      .sidebar.collapsed .user-info,.sidebar.collapsed .menu-badge{
+        opacity:0;white-space:nowrap;pointer-events:none;position:absolute;
+      }
+      .sidebar:not(.collapsed) .logo-text,.sidebar:not(.collapsed) .menu-label,.sidebar:not(.collapsed) .menu-item-label,
+      .sidebar:not(.collapsed) .menu-group-header span,.sidebar:not(.collapsed) .menu-group-header .chevron,
+      .sidebar:not(.collapsed) .user-info,.sidebar:not(.collapsed) .menu-badge{
+        opacity:1;transition:opacity .2s ease .1s;
+      }
+      .sidebar-logo{justify-content:flex-start;padding-right:38px;}
+      .sidebar.collapsed .sidebar-logo{padding:22px 0;justify-content:center;}
+      .sidebar.collapsed .sidebar-logo img{display:none;}
+
+      /* Tombol toggle collapse/expand, selalu tampil di sidebar-logo */
+      .sidebar-collapse-btn{
+        position:absolute;top:18px;right:10px;width:22px;height:22px;border-radius:6px;
+        background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);cursor:pointer;
+        font-size:11px;display:flex;align-items:center;justify-content:center;
+        transition:background .15s ease,color .15s ease;
+      }
+      .sidebar-collapse-btn:hover{background:rgba(255,255,255,.2);color:#fff;}
+      .sidebar.collapsed .sidebar-collapse-btn{
+        position:static;
+      }
+
+      /* ── Tooltip nama menu saat sidebar collapsed (icon-only) ── */
+      .sidebar.collapsed .menu-item{position:relative;}
+      .sidebar.collapsed .menu-item::after{
+        content:attr(data-tooltip);
+        position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+        background:#0A0E27;color:#fff;padding:6px 12px;border-radius:7px;
+        font-size:12px;font-weight:600;white-space:nowrap;
+        box-shadow:0 6px 20px rgba(5,15,45,.4);
+        opacity:0;visibility:hidden;pointer-events:none;
+        transition:opacity .15s ease .15s,visibility .15s ease .15s;
+        z-index:200;
+      }
+      .sidebar.collapsed .menu-item:hover::after{
+        opacity:1;visibility:visible;
+      }
+      /* Panah kecil penunjuk tooltip */
+      .sidebar.collapsed .menu-item::before{
+        content:'';position:absolute;left:100%;top:50%;transform:translateY(-50%);
+        border:5px solid transparent;border-right-color:#0A0E27;
+        opacity:0;visibility:hidden;transition:opacity .15s ease .15s,visibility .15s ease .15s;
+        z-index:200;
+      }
+      .sidebar.collapsed .menu-item:hover::before{
+        opacity:1;visibility:visible;
+      }
+    }
+
+    /* ══ BOTTOM NAV (mobile, ≤900px) ══ */
+    .bottom-nav{display:none;}
+    @media(max-width:900px){
+      .bottom-nav{
+        display:flex;position:fixed;left:0;right:0;bottom:0;z-index:150;
+        background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);
+        border-top:1px solid rgba(255,255,255,.1);
+        box-shadow:0 -4px 20px rgba(5,15,45,.35);
+        padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));
+      }
+      .bn-item{
+        flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+        background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;
+        padding:6px 2px;border-radius:10px;position:relative;transition:color .2s,background .2s;
+        min-width:0;
+      }
+      .bn-item i{font-size:16px;}
+      .bn-item span:not(.bn-badge){font-size:9.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+      .bn-item.active{color:#fff;background:rgba(255,255,255,.12);}
+      .bn-item:active{background:rgba(255,255,255,.18);}
+      .bn-badge{
+        position:absolute;top:2px;right:calc(50% - 20px);
+        background:#ef4444;color:#fff;font-size:8.5px;font-weight:700;
+        padding:1px 5px;border-radius:8px;min-width:14px;line-height:1.4;
+      }
+      /* Beri ruang di bawah agar konten tidak tertutup bottom nav */
+      body{padding-bottom:64px;}
+      /* Sidebar berfungsi sebagai drawer "Lainnya" — sembunyikan sidebar-user
+         duplikat info yang sudah cukup terwakili topbar, opsional dibiarkan */
+    }
+    @media(max-width:360px){
+      .bn-item span:not(.bn-badge){font-size:8.5px;}
+      .bn-item i{font-size:15px;}
+    }
 </style>
 </head>
 <body>
+<div id="page-bg-image" aria-hidden="true"></div>
 <canvas id="fx-bg" aria-hidden="true"></canvas>
 
 <script>
@@ -782,14 +982,36 @@ function logout(){
 </aside>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
+<!-- ══ BOTTOM NAV (mobile, ≤900px) ══
+     Navigasi utama diringkas jadi 5 aksi + "Lainnya" yang membuka
+     sidebar penuh sebagai drawer untuk akses menu selengkapnya. -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bn-item active" data-bn="utama" onclick="switchTab('utama',bnSyncSidebar('utama'))">
+    <i class="fas fa-th-large"></i><span>Utama</span>
+  </button>
+  <button class="bn-item" data-bn="buat" onclick="openFormPage()">
+    <i class="fas fa-plus-circle"></i><span>Buat</span>
+  </button>
+  <button class="bn-item" data-bn="layanan" onclick="switchTab('layanan',bnSyncSidebar('layanan'))">
+    <i class="fas fa-clipboard-list"></i><span>Permintaan</span><span class="bn-badge" id="bn-pending">–</span>
+  </button>
+  <button class="bn-item" data-bn="persetujuan" onclick="switchTab('persetujuan',bnSyncSidebar('persetujuan'))">
+    <i class="fas fa-check-circle"></i><span>Approval</span><span class="bn-badge" id="bn-persetujuan">–</span>
+  </button>
+  <button class="bn-item" data-bn="more" onclick="toggleSidebar()">
+    <i class="fas fa-ellipsis-h"></i><span>Lainnya</span>
+  </button>
+</nav>
+
 <!-- MAIN -->
 <div class="main">
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
       <button class="hamburger-btn" onclick="toggleSidebar()" title="Menu" aria-label="Buka menu"><i class="fas fa-bars"></i></button>
+      <img src="logo-siaga.png" alt="Logo SIAGA" class="topbar-logo" onerror="this.style.display='none'">
       <div>
-        <h1 id="topbar-title">Sistem Integrasi Administrasi General Affair</h1>
+        <h1 id="topbar-title">Sistem Administrasi General Affair</h1>
         <p id="tgl-now"></p>
       </div>
     </div>
@@ -3186,13 +3408,37 @@ function switchTab(tab, sidebarItem) {
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
     sidebarItem.classList.add('active');
   }
-  const titles = {utama:'Sistem Integrasi Administrasi General Affair', layanan:'Detail Jenis Layanan', bidang:'Detail per Bidang', kalender:'Kalender Permintaan', persetujuan:'Persetujuan Permintaan', 'single-detail':'Memuat...'};
+  // Sinkronkan status aktif ke bottom nav (mobile)
+  document.querySelectorAll('.bn-item').forEach(m=>m.classList.remove('active'));
+  const bnMatch = document.querySelector('.bn-item[data-bn="'+tab+'"]');
+  if(bnMatch) bnMatch.classList.add('active');
+
+  const titles = {utama:'Sistem Administrasi General Affair', layanan:'Detail Jenis Layanan', bidang:'Detail per Bidang', kalender:'Kalender Permintaan', persetujuan:'Persetujuan Permintaan', 'single-detail':'Memuat...'};
   document.getElementById('topbar-title').textContent = titles[tab];
 
   if (tab === 'layanan') renderLayananTab();
   if (tab === 'bidang') renderBidangTab();
   if (tab === 'kalender') renderKalenderTab();
   if (tab === 'persetujuan') renderPersetujuanTab();
+}
+
+// Ambil elemen .menu-item sidebar yang cocok dengan tab tertentu, dipakai
+// agar klik dari bottom nav tetap menandai item sidebar yang benar sebagai aktif.
+function bnSyncSidebar(tab){
+  const map = {
+    utama: 'switchTab(\'utama\'',
+    layanan: 'switchTab(\'layanan\'',
+    persetujuan: 'switchTab(\'persetujuan\'',
+    kalender: 'switchTab(\'kalender\''
+  };
+  const needle = map[tab];
+  if(!needle) return null;
+  let found = null;
+  document.querySelectorAll('.sidebar .menu-item').forEach(function(btn){
+    const onclk = btn.getAttribute('onclick') || '';
+    if(onclk.indexOf(needle) === 0) found = btn;
+  });
+  return found;
 }
 
 // ── NEUMORPHISM CHART HELPERS ──
@@ -3801,6 +4047,8 @@ function renderStats(s){
   document.getElementById('s-proses').textContent  = s.proses||0;
   document.getElementById('s-menunggu').textContent= s.menunggu||0;
   document.getElementById('sb-pending').textContent= s.menunggu||0;
+  const bnPending = document.getElementById('bn-pending');
+  if(bnPending) bnPending.textContent = s.menunggu||0;
 
   const pctSelesai = tot ? Math.round((s.selesai/tot)*100) : 0;
   document.getElementById('s-total-lbl').textContent   = `${tot} total permintaan`;
@@ -4975,6 +5223,8 @@ function updateApprovalBadge(){
     if(idx>=0 && idx<APPROVAL_STAGES.length && APPROVAL_STAGES[idx].roleCheck()) count++;
   });
   badge.textContent = count;
+  const bnBadge = document.getElementById('bn-persetujuan');
+  if(bnBadge) bnBadge.textContent = count;
 }
 
 // Kirim keputusan Setuju/Tolak untuk sebuah tahap ke Google Sheets + update tampilan lokal
@@ -6957,9 +7207,91 @@ window.addEventListener('message', function(e){
   }
 });
 
+// ══ Penyesuaian dinamis posisi sticky (topbar/period-bar/tab-nav) ══
+// Menjaga area header tetap "freeze" saat scroll, akurat walau tinggi
+// period-bar berubah (mis. saat filter wrap ke 2 baris di layar sempit).
+function adjustStickyOffsets(){
+  const topbar = document.querySelector('.topbar');
+  const periodBar = document.querySelector('.period-bar');
+  const tabNav = document.querySelector('.tab-nav');
+  if(!topbar || !tabNav) return;
+  const topbarH = topbar.offsetHeight;
+  let stackH = topbarH;
+  if(periodBar && periodBar.style.display !== 'none' && periodBar.offsetParent !== null){
+    periodBar.style.top = topbarH + 'px';
+    stackH += periodBar.offsetHeight;
+  }
+  tabNav.style.top = stackH + 'px';
+}
+window.addEventListener('resize', adjustStickyOffsets);
+window.addEventListener('load', adjustStickyOffsets);
+setTimeout(adjustStickyOffsets, 300);
+setTimeout(adjustStickyOffsets, 1000);
+
+// ══ SIDEBAR COLLAPSIBLE: bungkus teks menu-item jadi <span> agar bisa
+// disembunyikan/ditampilkan halus saat sidebar collapse/expand ══
+function wrapMenuItemLabels(){
+  document.querySelectorAll('.sidebar .menu-item').forEach(function(btn){
+    if(btn.querySelector('.menu-item-label')){
+      if(!btn.getAttribute('data-tooltip')){
+        const lbl = btn.querySelector('.menu-item-label');
+        if(lbl) btn.setAttribute('data-tooltip', lbl.textContent.trim());
+      }
+      return; // sudah dibungkus
+    }
+    let labelText = '';
+    btn.childNodes.forEach(function(node){
+      if(node.nodeType === 3 && node.textContent.trim() !== ''){
+        const span = document.createElement('span');
+        span.className = 'menu-item-label';
+        span.textContent = node.textContent;
+        labelText = node.textContent.trim();
+        btn.replaceChild(span, node);
+      }
+    });
+    if(labelText) btn.setAttribute('data-tooltip', labelText);
+  });
+  const logoEl = document.querySelector('.sidebar-logo');
+  if(logoEl && !logoEl.querySelector('.sidebar-collapse-btn')){
+    const collapseBtn = document.createElement('button');
+    collapseBtn.className = 'sidebar-collapse-btn';
+    collapseBtn.title = 'Ciutkan/lebarkan sidebar';
+    collapseBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    collapseBtn.onclick = function(e){
+      e.stopPropagation();
+      toggleSidebarCollapse();
+    };
+    logoEl.style.position = 'relative';
+    logoEl.appendChild(collapseBtn);
+  }
+  try{
+    if(sessionStorage.getItem('sidebar_collapsed') === '1' && window.innerWidth > 900){
+      setSidebarCollapsed(true);
+    }
+  }catch(err){}
+}
+wrapMenuItemLabels();
+
+// Toggle collapse/expand sidebar desktop, dipicu klik tombol di sidebar-logo
+function setSidebarCollapsed(collapsed){
+  const sb = document.querySelector('.sidebar');
+  const btn = document.querySelector('.sidebar-collapse-btn i');
+  if(!sb) return;
+  sb.classList.toggle('collapsed', collapsed);
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
+  if(btn) btn.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+  try{ sessionStorage.setItem('sidebar_collapsed', collapsed ? '1':'0'); }catch(err){}
+  setTimeout(adjustStickyOffsets, 300);
+}
+function toggleSidebarCollapse(){
+  const sb = document.querySelector('.sidebar');
+  setSidebarCollapsed(!sb.classList.contains('collapsed'));
+}
+
 initAuthUI();
 initCharts();
 loadData();
+setTimeout(adjustStickyOffsets, 500);
 </script>
 <!-- ══════════════════════ HALAMAN FORM PENGAJUAN (in-page, bukan tab baru) ══════════════════════ -->
 <div id="form-page-overlay" style="display:none;position:fixed;inset:0;background:#F5F6FB;z-index:5000;">
