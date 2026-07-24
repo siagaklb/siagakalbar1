@@ -89,6 +89,8 @@
     .period-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#eff6ff;color:var(--primary-light);}
     .period-reset{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--bg);border:none;padding:6px 12px;border-radius:8px;cursor:pointer;}
     .period-reset:hover{background:var(--border);}
+    /* Tombol ringkas pengganti period-bar di layar HP — disembunyikan di desktop/tablet */
+    .period-toggle-btn{display:none;}
     .cal-nav{display:flex;align-items:center;gap:10px;}
     .cal-nav-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;}
     .cal-nav-btn:hover{background:var(--bg);}
@@ -176,10 +178,11 @@
       background:rgba(var(--glow),.12);
       border:1px solid rgba(var(--glow),.28);}
     .stat-icon i{filter:none;}
-    .stat-info{position:relative;z-index:1;}
-    .stat-info p{font-size:11px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
-    .stat-info h3{font-size:26px;font-weight:700;line-height:1.1;color:var(--text);}
-    .stat-change{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:2px 8px;border-radius:20px;background:rgba(var(--glow),.12);color:rgb(var(--glow));}
+    .stat-card{min-width:0;}
+    .stat-info{position:relative;z-index:1;min-width:0;flex:1 1 auto;}
+    .stat-info p{font-size:clamp(9.5px,2.6vw,11px);color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .stat-info h3{font-size:clamp(16px,4.2vw,26px);font-weight:700;line-height:1.15;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+    .stat-change{font-size:clamp(9.5px,2.4vw,11px);font-weight:700;display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:2px 8px;border-radius:20px;background:rgba(var(--glow),.12);color:rgb(var(--glow));max-width:100%;white-space:normal;line-height:1.3;}
     .stat-change.up{color:#16a34a;background:#e9fbf0;}
     .stat-change.down{color:#dc2626;background:#fef2f2;}
     .stat-change.neu{color:rgb(var(--glow));}
@@ -550,11 +553,25 @@
       .topbar-right{flex-shrink:0;}
       .btn-new .btn-new-label{display:none;}
       .btn-new{padding:0 12px;}
-      .period-bar{padding:8px 14px;gap:8px;}
+      /* Tombol ringkas: satu baris, menggantikan period-bar penuh sampai di-tap */
+      .period-toggle-btn{display:flex;align-items:center;justify-content:space-between;width:100%;
+        background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);
+        color:#fff;border:none;padding:10px 14px;font-size:12.5px;font-weight:600;cursor:pointer;
+        position:sticky;top:64px;z-index:49;border-bottom:1px solid rgba(255,255,255,.08);}
+      .period-toggle-btn i{font-size:11px;}
+      .period-toggle-btn #period-toggle-chevron{transition:transform .25s ease;}
+      .period-toggle-btn.open #period-toggle-chevron{transform:rotate(180deg);}
+      /* Panel filter lengkap: disembunyikan sampai tombol ringkas di-tap, lalu tampil sebagai dropdown-panel */
+      .period-bar{display:none;flex-direction:column;align-items:stretch;padding:12px 14px;gap:8px;
+        position:sticky;top:104px;z-index:48;box-shadow:0 6px 16px rgba(5,15,45,.25);}
+      .period-bar.open{display:flex;}
       .period-bar-label{font-size:11px;}
-      .period-select{padding:6px 8px;font-size:12px;flex:1 1 auto;min-width:0;}
-      .period-reset{padding:6px 10px;}
-      .stat-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .period-select{padding:8px 10px;font-size:13px;width:100%;}
+      .period-reset{padding:8px 10px;width:100%;justify-content:center;display:flex;}
+      .period-badge{width:100%;text-align:center;}
+      .stat-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px;}
+      .stat-card{padding:12px;gap:10px;}
+      .stat-icon{width:38px;height:38px;font-size:15px;border-radius:10px;}
       .svc-grid{grid-template-columns:repeat(3,1fr)!important;}
       .bidang-grid{grid-template-columns:repeat(2,1fr)!important;}
       .layanan-full-grid,.bidang-full-grid{grid-template-columns:1fr!important;}
@@ -586,7 +603,9 @@
       .tab-btn{padding:12px 14px;font-size:12px;white-space:nowrap;flex-shrink:0;}
     }
     @media(max-width:480px){
-      .stat-grid{grid-template-columns:1fr 1fr!important;}
+      .stat-grid{grid-template-columns:1fr 1fr!important;gap:8px;}
+      .stat-card{padding:10px;gap:8px;border-radius:12px;}
+      .stat-icon{width:34px;height:34px;font-size:13px;}
       .svc-grid{grid-template-columns:repeat(2,1fr)!important;}
       .topbar-right{gap:6px;}
       .icon-btn{width:32px;height:32px;font-size:12px;}
@@ -1068,8 +1087,14 @@ function logout(){
     </div>
   </div>
 
+  <!-- Tombol ringkas khusus mobile: menampilkan status filter + toggle buka/tutup panel -->
+  <button type="button" class="period-toggle-btn" id="period-toggle-btn" onclick="togglePeriodBar()">
+    <span><i class="fas fa-filter"></i> <span id="period-toggle-text">Semua Periode</span></span>
+    <i class="fas fa-chevron-down" id="period-toggle-chevron"></i>
+  </button>
+
   <!-- PERIOD FILTER BAR (Bulan & Tahun) — berlaku untuk tab Utama, Layanan, Bidang -->
-  <div class="period-bar">
+  <div class="period-bar" id="period-bar">
     <div class="period-bar-label"><i class="fas fa-filter" style="color:var(--primary-light);"></i>Periode Data:</div>
     <select class="period-select" id="period-month-select" onchange="onPeriodFilterChange()">
       <option value="all">Semua Bulan</option>
@@ -1152,7 +1177,7 @@ function logout(){
         <div class="stat-card biaya" style="grid-column:span 1;--glow:217,119,6;">
           <span class="hud-corner hud-tl"></span><span class="hud-corner hud-br"></span>
           <div class="stat-icon"><i class="fas fa-wallet" style="color:#fbbf24;"></i></div>
-          <div class="stat-info"><p>Total Biaya</p><h3 id="s-biaya" style="font-size:18px;">–</h3><div class="stat-change neu" id="s-biaya-lbl">Memuat...</div></div>
+          <div class="stat-info"><p>Total Biaya</p><h3 id="s-biaya" style="font-size:clamp(13px,3.6vw,20px);">–</h3><div class="stat-change neu" id="s-biaya-lbl">Memuat...</div></div>
         </div>
         <div class="stat-card" style="--glow:99,102,241;">
           <span class="hud-corner hud-tl"></span><span class="hud-corner hud-br"></span>
@@ -3874,11 +3899,29 @@ function updatePeriodBadge(){
   const badge = document.getElementById('period-badge');
   if(!badge) return;
   const STATUS_LABEL = {selesai:'Selesai', belum:'Belum Selesai', 'Dalam Proses':'Dalam Proses', 'Menunggu':'Menunggu', 'Ditolak':'Ditolak'};
-  if(month==='all' && year==='all' && status==='all'){ badge.textContent = 'Menampilkan: Semua Periode'; return; }
+  const toggleText = document.getElementById('period-toggle-text');
+  if(month==='all' && year==='all' && status==='all'){
+    badge.textContent = 'Menampilkan: Semua Periode';
+    if(toggleText) toggleText.textContent = 'Semua Periode';
+    return;
+  }
   const monthLabel = month!=='all' ? MONTH_ID[parseInt(month,10)] : '';
   const yearLabel = year!=='all' ? year : '';
   const statusLabel = status!=='all' ? STATUS_LABEL[status] : '';
-  badge.textContent = `Menampilkan: ${[monthLabel,yearLabel,statusLabel].filter(Boolean).join(' · ') || 'Semua Periode'}`;
+  const shortLabel = [monthLabel,yearLabel,statusLabel].filter(Boolean).join(' · ') || 'Semua Periode';
+  badge.textContent = `Menampilkan: ${shortLabel}`;
+  if(toggleText) toggleText.textContent = shortLabel;
+}
+
+// Buka/tutup panel filter periode ringkas (khusus tampilan HP)
+function togglePeriodBar(){
+  const bar = document.getElementById('period-bar');
+  const btn = document.getElementById('period-toggle-btn');
+  if(!bar || !btn) return;
+  const willOpen = !bar.classList.contains('open');
+  bar.classList.toggle('open', willOpen);
+  btn.classList.toggle('open', willOpen);
+  setTimeout(adjustStickyOffsets, 50);
 }
 
 // Dipanggil saat dropdown Bulan/Tahun berubah — refresh SEMUA tab (Utama, Layanan, Bidang, Kalender)
@@ -7149,6 +7192,8 @@ function initAuthUI(){
     // Sembunyikan period-bar (filter periode — tidak relevan untuk pegawai)
     const periodBar = document.querySelector('.period-bar');
     if(periodBar) periodBar.style.display = 'none';
+    const periodToggleBtn = document.querySelector('.period-toggle-btn');
+    if(periodToggleBtn) periodToggleBtn.style.display = 'none';
 
     // ── Sembunyikan semua section chart & data di panel-utama yang tidak relevan ──
     const hideIds = [
@@ -7256,13 +7301,19 @@ window.addEventListener('message', function(e){
 // period-bar berubah (mis. saat filter wrap ke 2 baris di layar sempit).
 function adjustStickyOffsets(){
   const topbar = document.querySelector('.topbar');
+  const toggleBtn = document.querySelector('.period-toggle-btn');
   const periodBar = document.querySelector('.period-bar');
   const tabNav = document.querySelector('.tab-nav');
   if(!topbar || !tabNav) return;
   const topbarH = topbar.offsetHeight;
   let stackH = topbarH;
+  // Tombol ringkas filter periode (mobile) — selalu sticky tepat di bawah topbar
+  if(toggleBtn && toggleBtn.offsetParent !== null){
+    toggleBtn.style.top = topbarH + 'px';
+    stackH += toggleBtn.offsetHeight;
+  }
   if(periodBar && periodBar.style.display !== 'none' && periodBar.offsetParent !== null){
-    periodBar.style.top = topbarH + 'px';
+    periodBar.style.top = stackH + 'px';
     stackH += periodBar.offsetHeight;
   }
   tabNav.style.top = stackH + 'px';
