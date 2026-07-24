@@ -815,6 +815,8 @@
       .sidebar-logo{justify-content:flex-start;padding-right:38px;}
       .sidebar.collapsed .sidebar-logo{padding:22px 0;justify-content:center;}
       .sidebar.collapsed .sidebar-logo img{display:none;}
+      .sidebar-logo-collapsed{display:none;height:32px;width:32px;border-radius:8px;}
+      .sidebar.collapsed .sidebar-logo-collapsed{display:block!important;}
 
       /* Tombol toggle collapse/expand, selalu tampil di sidebar-logo */
       .sidebar-collapse-btn{
@@ -956,6 +958,7 @@ function logout(){
 <aside class="sidebar">
   <div class="sidebar-logo">
     <img src="https://lh3.googleusercontent.com/d/1t6453RlZEAnfJ0Vv2kSI_FcwGJhBbH1z" alt="Logo PLN Indonesia Power Services" style="height:38px;width:auto;">
+    <img src="icon-192.png" alt="SIAGA" class="sidebar-logo-collapsed">
   </div>
   <div class="sidebar-menu">
     <div class="menu-group">
