@@ -2,8 +2,19 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Sistem Administrasi General Affair</title>
+
+  <!-- ══ PWA: agar bisa diinstall/Add to Home Screen di HP & Tablet ══ -->
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#141B3C"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+  <!-- iOS Safari (tidak baca manifest.json, perlu meta khusus) -->
+  <link rel="apple-touch-icon" href="icon-180.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SIAGA"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -562,9 +573,9 @@
       .layanan-filter,.bidang-filter{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
       .layanan-filter::-webkit-scrollbar,.bidang-filter::-webkit-scrollbar{display:none;}
       .filter-btn{flex-shrink:0;white-space:nowrap;}
-      /* Tabel: jadikan scroll horizontal agar tidak merusak layout di HP */
-      .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
-      .req-table thead,.req-table tbody{display:table;width:100%;min-width:640px;}
+      /* Tabel: scroll horizontal via wrapper, tabel tetap satu unit agar kolom header & isi tetap sejajar */
+      .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .req-table{width:100%;min-width:640px;white-space:nowrap;}
       .mini-items-table,#items-edit-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
       .modal{width:94vw!important;padding:18px!important;}
       .detail-modal{width:96vw!important;}
@@ -737,8 +748,9 @@
     }
 
     /* Tabel & konten lebar lain: pastikan bisa discroll di semua layar */
+    .table-scroll{width:100%;}
     @media(max-width:1180px){
-      .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     }
 
     /* Kartu sedikit translucent supaya tekstur background gambar tetap terasa,
@@ -1046,6 +1058,7 @@ function logout(){
     <div class="topbar-right">
       <button class="btn-new" onclick="openFormPage()"><i class="fas fa-plus"></i><span class="btn-new-label">Buat Permintaan</span></button>
       <div class="icon-btn" onclick="loadData()" title="Refresh Data"><i class="fas fa-sync-alt"></i></div>
+      <div class="icon-btn" id="btn-install-app" onclick="installPWA()" title="Install Aplikasi ke HP/Tablet" style="display:none;color:#4F46E5;border-color:#4F46E5;"><i class="fas fa-mobile-screen-button"></i></div>
       <div class="icon-btn" onclick="openGSConfig()" title="Konfigurasi Google Sheets" style="color:#0f9d58;border-color:#0f9d58;"><i class="fas fa-table"></i></div>
       <div class="icon-btn notif-wrap" title="Notifikasi"><i class="fas fa-bell"></i><div class="notif-dot"></div></div>
       <div class="icon-btn" title="Profil"><i class="fas fa-user"></i></div>
@@ -1259,12 +1272,12 @@ function logout(){
             <a class="see-all" onclick="switchTab('layanan',null)">Lihat Semua →</a>
           </div>
         </div>
-        <table class="req-table">
+        <div class="table-scroll"><table class="req-table">
           <thead>
             <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
           </thead>
           <tbody id="req-tbody"></tbody>
-        </table>
+        </table></div>
       </div>
     </div><!-- end panel-utama -->
 
@@ -1312,12 +1325,12 @@ function logout(){
             <option value="prio">Prioritas</option>
           </select>
         </div>
-        <table class="req-table">
+        <div class="table-scroll"><table class="req-table">
           <thead>
             <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
           </thead>
           <tbody id="layanan-tbody"></tbody>
-        </table>
+        </table></div>
         <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:6px;" id="layanan-pagination"></div>
       </div>
     </div><!-- end panel-layanan -->
@@ -1380,12 +1393,12 @@ function logout(){
             <option value="ADM">ADM</option>
           </select>
         </div>
-        <table class="req-table">
+        <div class="table-scroll"><table class="req-table">
           <thead>
             <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
           </thead>
           <tbody id="bidang-tbody"></tbody>
-        </table>
+        </table></div>
       </div>
     </div><!-- end panel-bidang -->
 
@@ -1537,12 +1550,12 @@ function logout(){
           <div class="sec-title"><i class="fas fa-list-check" style="color:var(--primary-light);margin-right:6px;"></i>Progress Semua Permintaan</div>
           <span style="font-size:12px;color:var(--muted);" id="appr-row-count">– data</span>
         </div>
-        <table class="req-table">
+        <div class="table-scroll"><table class="req-table">
           <thead>
             <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Dibuat</th><th>Supervisor Administrasi</th><th>Supervisor Senior Administrasi</th><th>Manager Administrasi</th><th>Status</th></tr>
           </thead>
           <tbody id="appr-tbody"></tbody>
-        </table>
+        </table></div>
       </div>
     </div><!-- end panel-persetujuan -->
 
@@ -5405,10 +5418,10 @@ function showLayananSummary(svcKey){
     <div class="summary-subsec-title"><i class="fas fa-sitemap" style="color:var(--primary-light);"></i>Permintaan per Bidang</div>
     <div class="breakdown-list">${breakdownHtml}</div>
     <div class="summary-subsec-title"><i class="fas fa-list" style="color:var(--primary-light);"></i>Daftar Permintaan (${tot})</div>
-    <table class="req-table">
+    <div class="table-scroll"><table class="req-table">
       <thead><tr><th>ID</th><th>Pemohon</th><th>Bidang</th><th>Biaya</th><th>Status</th><th>Aksi</th></tr></thead>
       <tbody>${renderSummaryRowsCompact(rows)}</tbody>
-    </table>
+    </table></div>
   `;
   document.getElementById('summary-modal').classList.add('show');
 }
@@ -5462,10 +5475,10 @@ function showBidangSummary(bidKey){
     <div class="summary-subsec-title"><i class="fas fa-layer-group" style="color:var(--primary-light);"></i>Permintaan per Jenis Layanan</div>
     <div class="breakdown-list">${breakdownHtml}</div>
     <div class="summary-subsec-title"><i class="fas fa-list" style="color:var(--primary-light);"></i>Daftar Permintaan (${tot})</div>
-    <table class="req-table">
+    <div class="table-scroll"><table class="req-table">
       <thead><tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Biaya</th><th>Status</th><th>Aksi</th></tr></thead>
       <tbody>${renderSummaryRowsBidangCompact(rows)}</tbody>
-    </table>
+    </table></div>
   `;
   document.getElementById('summary-modal').classList.add('show');
 }
@@ -7325,6 +7338,51 @@ setTimeout(adjustStickyOffsets, 500);
 <div id="form-page-overlay" style="display:none;position:fixed;inset:0;background:#F5F6FB;z-index:5000;">
   <iframe id="form-page-iframe" title="Form Permintaan Layanan" style="width:100%;height:100%;border:none;display:block;"></iframe>
 </div>
+
+<script>
+// ══════════ PWA: registrasi service worker + tombol Install ══════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(err=>console.warn('SW gagal:',err));
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('btn-install-app');
+  if(btn) btn.style.display = 'flex';
+});
+
+function installPWA(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(()=>{ deferredInstallPrompt = null; });
+  } else if(/iphone|ipad|ipod/i.test(navigator.userAgent)){
+    if(typeof showToast==='function'){
+      showToast('Di iPhone/iPad: tap tombol Share (kotak+panah) di Safari, lalu pilih "Add to Home Screen".','info');
+    } else {
+      alert('Di iPhone/iPad: tap tombol Share di Safari, lalu pilih "Add to Home Screen".');
+    }
+  } else {
+    if(typeof showToast==='function'){
+      showToast('Buka menu (⋮) browser, lalu pilih "Install app" atau "Add to Home Screen".','info');
+    } else {
+      alert('Buka menu browser (⋮), lalu pilih "Install app" atau "Add to Home Screen".');
+    }
+  }
+}
+
+// Sembunyikan tombol install kalau sudah berjalan sebagai app terinstall (standalone)
+window.addEventListener('DOMContentLoaded', ()=>{
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(isStandalone){
+    const btn = document.getElementById('btn-install-app');
+    if(btn) btn.style.display = 'none';
+  }
+});
+</script>
 
 </body>
 </html>
