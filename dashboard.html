@@ -532,18 +532,36 @@
       .sidebar.open{transform:translateX(0);}
       .main{margin-left:0;}
       .hamburger-btn{display:flex;}
-      .topbar{padding:0 14px;gap:10px;}
-      .topbar-left h1{font-size:14px;}
+      .topbar{padding:0 14px;gap:8px;}
+      .topbar-left{min-width:0;flex:1 1 auto;overflow:hidden;}
+      .topbar-left h1{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .topbar-left p{display:none;}
+      .topbar-right{flex-shrink:0;}
       .btn-new .btn-new-label{display:none;}
       .btn-new{padding:0 12px;}
-      .period-bar{padding:8px 14px;}
+      .period-bar{padding:8px 14px;gap:8px;}
+      .period-bar-label{font-size:11px;}
+      .period-select{padding:6px 8px;font-size:12px;flex:1 1 auto;min-width:0;}
+      .period-reset{padding:6px 10px;}
       .stat-grid{grid-template-columns:repeat(2,1fr)!important;}
       .svc-grid{grid-template-columns:repeat(3,1fr)!important;}
       .bidang-grid{grid-template-columns:repeat(2,1fr)!important;}
       .layanan-full-grid,.bidang-full-grid{grid-template-columns:1fr!important;}
       .detail-grid{grid-template-columns:1fr!important;}
       .appr-stage-grid{grid-template-columns:1fr!important;}
+      /* Header tab Layanan/Bidang: judul + tombol export tumpuk rapi, tidak berdempetan */
+      .layanan-header,.bidang-header{flex-wrap:wrap;gap:12px;align-items:flex-start;}
+      .layanan-header>div:first-child,.bidang-header>div:first-child{min-width:0;max-width:100%;}
+      .layanan-header>div:first-child h2,.bidang-header>div:first-child h2,#sd-title{font-size:16px;overflow-wrap:break-word;}
+      .layanan-header>div:last-child,.bidang-header>div:last-child{width:100%;}
+      .layanan-header .export-btn,.bidang-header .export-btn{flex:1;justify-content:center;}
+      .layanan-header h2,.bidang-header h2{font-size:16px;}
+      /* Kartu ringkasan (4 kolom) jadi 2 kolom di HP */
+      .summary-stat-row{grid-template-columns:repeat(2,1fr)!important;}
+      /* Filter pills (Semua/Konsumsi Khusus/dst): scroll horizontal, tidak terpotong */
+      .layanan-filter,.bidang-filter{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
+      .layanan-filter::-webkit-scrollbar,.bidang-filter::-webkit-scrollbar{display:none;}
+      .filter-btn{flex-shrink:0;white-space:nowrap;}
       /* Tabel: jadikan scroll horizontal agar tidak merusak layout di HP */
       .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
       .req-table thead,.req-table tbody{display:table;width:100%;min-width:640px;}
@@ -551,6 +569,10 @@
       .modal{width:94vw!important;padding:18px!important;}
       .detail-modal{width:96vw!important;}
       .summary-modal,.form-modal,.preview-modal{width:96vw!important;}
+      /* Tab nav utama (UTAMA/LAYANAN/BIDANG dll): scroll horizontal agar tidak terpotong */
+      .tab-nav{padding:0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+      .tab-nav::-webkit-scrollbar{display:none;}
+      .tab-btn{padding:12px 14px;font-size:12px;white-space:nowrap;flex-shrink:0;}
     }
     @media(max-width:480px){
       .stat-grid{grid-template-columns:1fr 1fr!important;}
@@ -558,6 +580,12 @@
       .topbar-right{gap:6px;}
       .icon-btn{width:32px;height:32px;font-size:12px;}
       .btn-new{padding:0 10px;gap:0;}
+      .period-bar{flex-wrap:wrap;}
+      .period-select{flex:1 1 45%;}
+      .period-reset{flex:1 1 auto;}
+      .period-badge{width:100%;text-align:center;}
+      .layanan-header .export-btn,.bidang-header .export-btn{font-size:11px;padding:8px 10px;}
+      .lbc-count{font-size:26px;}
     }
 
     /* ══════════════════════════════════════════════════════════════
