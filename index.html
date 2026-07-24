@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sistem Integrasi Administrasi General Affair</title>
+  <title>Sistem Administrasi General Affair</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -23,10 +23,23 @@
     }
     html{scroll-behavior:smooth;}
     h1,h2,h3,h4{font-family:var(--font-display);letter-spacing:-.01em;}
-    html{background:var(--bg);}
+    html{background:transparent;}
     body{font-family:var(--font-body);background:transparent;color:var(--text);display:flex;min-height:100vh;position:relative;}
     #fx-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block;}
     @media (prefers-reduced-motion: reduce){ #fx-bg{display:none;} }
+
+    /* ══ BACKGROUND GAMBAR DASHBOARD ══ */
+    #page-bg-image{
+      position:fixed;inset:0;width:100%;height:100%;z-index:-2;
+      background-image:url('background-pltu.jpg');
+      background-size:cover;background-position:center bottom;background-repeat:no-repeat;background-attachment:fixed;
+      pointer-events:none;
+    }
+    #page-bg-image::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(10,14,39,.82),rgba(20,27,60,.86) 50%,rgba(10,14,39,.9));
+    }
+    @media(max-width:900px){ #page-bg-image{background-attachment:scroll;} }
 
     /* SIDEBAR */
     .sidebar{width:var(--sidebar-width);background:linear-gradient(180deg,var(--primary-dark),var(--primary));min-height:100vh;position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:100;overflow:hidden;}
@@ -57,8 +70,8 @@
     .main{margin-left:var(--sidebar-width);flex:1;display:flex;flex-direction:column;}
 
     /* TOPBAR */
-    .topbar{background:#fff;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-    .period-bar{background:#fff;padding:10px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:49;flex-wrap:wrap;}
+    .topbar{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(5,15,45,.35);}
+    .period-bar{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);padding:10px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:64px;z-index:49;flex-wrap:wrap;}
     .period-bar-label{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;}
     .period-select{border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);outline:none;cursor:pointer;background:#fff;}
     .period-select:focus{border-color:var(--primary-light);}
@@ -110,6 +123,8 @@
     .appr-status-chip.rejected{background:#fee2e2;color:#991b1b;}
     .appr-status-chip.na{background:#f1f5f9;color:#94a3b8;}
     .topbar-left{display:flex;align-items:center;gap:10px;}
+    .topbar-logo{height:36px;width:auto;flex-shrink:0;object-fit:contain;}
+    @media(max-width:900px){ .topbar-logo{height:28px;} }
     .topbar-left h1{font-size:17px;font-weight:700;}
     .topbar-left p{font-size:12px;color:var(--muted);}
     .topbar-right{display:flex;align-items:center;gap:10px;}
@@ -121,7 +136,7 @@
     .notif-dot{width:8px;height:8px;background:#ef4444;border-radius:50%;position:absolute;top:5px;right:5px;border:2px solid #fff;}
 
     /* TAB NAV */
-    .tab-nav{background:#fff;border-bottom:2px solid var(--border);padding:0 28px;display:flex;gap:4px;}
+    .tab-nav{background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);border-bottom:2px solid rgba(255,255,255,.1);padding:0 28px;display:flex;gap:4px;position:sticky;z-index:48;top:117px;}
     .tab-btn{padding:14px 20px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:8px;transition:all .2s;}
     .tab-btn:hover{color:var(--primary-light);}
     .tab-btn.active{color:var(--primary-light);border-bottom-color:var(--primary-light);}
@@ -650,9 +665,194 @@
     .settings-status.success{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
     .settings-status.error{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
     .settings-status.loading{display:block;background:#eff6ff;color:var(--primary-light);border:1px solid #bfdbfe;}
+
+    /* ══════════════════════════════════════════════════════════════
+       PENYEMPURNAAN RESPONSIVE — HP, TABLET, LAPTOP
+       Melengkapi breakpoint yang sudah ada, tanpa mengubah class/id.
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Base: cegah overflow horizontal di semua ukuran layar */
+    html{max-width:100%;overflow-x:hidden;}
+    body{max-width:100%;}
+    img,canvas,svg{max-width:100%;}
+    .main{min-width:0;}
+
+    /* ── TABLET (901px – 1180px): transisi halus antara desktop & mobile ── */
+    @media(max-width:1180px) and (min-width:901px){
+      :root{--sidebar-width:220px;}
+      .stat-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .svc-grid{grid-template-columns:repeat(3,1fr)!important;}
+      .bidang-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .appr-stage-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .g2,.g3,.bidang-chart-section{grid-template-columns:1fr!important;}
+      .detail-grid{grid-template-columns:1fr 1fr!important;}
+      .cal-nav-title{min-width:110px;}
+    }
+
+    /* ── TABLET/HP dalam mode landscape kecil ── */
+    @media(max-width:900px){
+      .sidebar{width:min(var(--sidebar-width),80vw);}
+    }
+
+    /* ── HP kecil (≤380px) ── */
+    @media(max-width:380px){
+      .stat-grid{grid-template-columns:1fr!important;}
+      .svc-grid{grid-template-columns:1fr 1fr!important;}
+      .topbar-left h1{font-size:13px;}
+      .cal-nav-title{min-width:100px;font-size:12px;}
+      .cal-day{min-height:48px;}
+    }
+
+    /* ── Landscape HP: batasi tinggi elemen kalender agar tidak overflow ── */
+    @media(max-height:480px) and (orientation:landscape){
+      .cal-day{min-height:44px;}
+    }
+
+    /* Tabel & konten lebar lain: pastikan bisa discroll di semua layar */
+    @media(max-width:1180px){
+      .req-table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    }
+
+    /* Kartu sedikit translucent supaya tekstur background gambar tetap terasa,
+       tanpa mengurangi keterbacaan konten */
+    .stat-card,.svc-card,.bidang-card,.layanan-big-card,.bidang-big-card,.card,
+    .appr-stage-card,.appr-action-item,.cal-grid-wrap,.form-modal,.detail-modal,
+    .summary-modal,.preview-modal,.modal{
+      background-color:rgba(255,255,255,.94);
+      backdrop-filter:blur(2px);
+    }
+    .sidebar{backdrop-filter:none;}
+
+    /* ══════════════════════════════════════════════════════════════
+       KONTRAS TEKS — Topbar, Period Bar, Tab Nav (kini biru gelap)
+       ══════════════════════════════════════════════════════════════ */
+    .topbar-left h1{background:none!important;-webkit-background-clip:unset;background-clip:unset;color:#fff;}
+    .topbar-left p{color:rgba(255,255,255,.6);}
+    .icon-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.85);}
+    .icon-btn:hover{background:rgba(255,255,255,.18);}
+    .hamburger-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;}
+
+    .period-bar-label{color:#fff;}
+    .period-select{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:#fff;}
+    .period-select option{color:var(--text);background:#fff;}
+    .period-select:focus{border-color:var(--accent);}
+    .period-reset{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);}
+    .period-reset:hover{background:rgba(255,255,255,.18);}
+    .cal-nav-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:#fff;}
+    .cal-nav-btn:hover{background:rgba(255,255,255,.18);}
+    .cal-nav-title{color:#fff;}
+
+    .tab-btn{color:rgba(255,255,255,.6);}
+    .tab-btn:hover{color:#fff;}
+    .tab-btn.active{color:#fff;}
+
+    /* ══ SIDEBAR COLLAPSIBLE (desktop, >900px) ══
+       Sidebar default terbuka penuh (260px). Toggle lewat tombol collapse
+       menyusutkannya jadi strip ikon (64px) dan tetap begitu sampai
+       di-toggle kembali — tidak lagi otomatis melebar saat hover.
+       Diletakkan di akhir agar cascade menang atas aturan .sidebar/.main dasar. */
+    @media(min-width:901px){
+      .sidebar{transition:width .28s cubic-bezier(.4,0,.2,1);}
+      .main{transition:margin-left .28s cubic-bezier(.4,0,.2,1);}
+
+      .sidebar.collapsed{width:64px;overflow:hidden;}
+      body.sidebar-collapsed .main{margin-left:64px!important;}
+
+      .sidebar.collapsed .sidebar-menu{overflow-x:hidden;}
+      .sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0;}
+      .sidebar.collapsed .menu-item i{width:auto;}
+      .sidebar.collapsed .menu-group-header{justify-content:center;padding-left:0;padding-right:0;}
+      .sidebar.collapsed .logo-text,.sidebar.collapsed .menu-label,.sidebar.collapsed .menu-item-label,
+      .sidebar.collapsed .menu-group-header span,.sidebar.collapsed .menu-group-header .chevron,
+      .sidebar.collapsed .user-info,.sidebar.collapsed .menu-badge{
+        opacity:0;white-space:nowrap;pointer-events:none;position:absolute;
+      }
+      .sidebar:not(.collapsed) .logo-text,.sidebar:not(.collapsed) .menu-label,.sidebar:not(.collapsed) .menu-item-label,
+      .sidebar:not(.collapsed) .menu-group-header span,.sidebar:not(.collapsed) .menu-group-header .chevron,
+      .sidebar:not(.collapsed) .user-info,.sidebar:not(.collapsed) .menu-badge{
+        opacity:1;transition:opacity .2s ease .1s;
+      }
+      .sidebar-logo{justify-content:flex-start;padding-right:38px;}
+      .sidebar.collapsed .sidebar-logo{padding:22px 0;justify-content:center;}
+      .sidebar.collapsed .sidebar-logo img{display:none;}
+
+      /* Tombol toggle collapse/expand, selalu tampil di sidebar-logo */
+      .sidebar-collapse-btn{
+        position:absolute;top:18px;right:10px;width:22px;height:22px;border-radius:6px;
+        background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);cursor:pointer;
+        font-size:11px;display:flex;align-items:center;justify-content:center;
+        transition:background .15s ease,color .15s ease;
+      }
+      .sidebar-collapse-btn:hover{background:rgba(255,255,255,.2);color:#fff;}
+      .sidebar.collapsed .sidebar-collapse-btn{
+        position:static;
+      }
+
+      /* ── Tooltip nama menu saat sidebar collapsed (icon-only) ── */
+      .sidebar.collapsed .menu-item{position:relative;}
+      .sidebar.collapsed .menu-item::after{
+        content:attr(data-tooltip);
+        position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);
+        background:#0A0E27;color:#fff;padding:6px 12px;border-radius:7px;
+        font-size:12px;font-weight:600;white-space:nowrap;
+        box-shadow:0 6px 20px rgba(5,15,45,.4);
+        opacity:0;visibility:hidden;pointer-events:none;
+        transition:opacity .15s ease .15s,visibility .15s ease .15s;
+        z-index:200;
+      }
+      .sidebar.collapsed .menu-item:hover::after{
+        opacity:1;visibility:visible;
+      }
+      /* Panah kecil penunjuk tooltip */
+      .sidebar.collapsed .menu-item::before{
+        content:'';position:absolute;left:100%;top:50%;transform:translateY(-50%);
+        border:5px solid transparent;border-right-color:#0A0E27;
+        opacity:0;visibility:hidden;transition:opacity .15s ease .15s,visibility .15s ease .15s;
+        z-index:200;
+      }
+      .sidebar.collapsed .menu-item:hover::before{
+        opacity:1;visibility:visible;
+      }
+    }
+
+    /* ══ BOTTOM NAV (mobile, ≤900px) ══ */
+    .bottom-nav{display:none;}
+    @media(max-width:900px){
+      .bottom-nav{
+        display:flex;position:fixed;left:0;right:0;bottom:0;z-index:150;
+        background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);
+        border-top:1px solid rgba(255,255,255,.1);
+        box-shadow:0 -4px 20px rgba(5,15,45,.35);
+        padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));
+      }
+      .bn-item{
+        flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+        background:none;border:none;color:rgba(255,255,255,.55);cursor:pointer;
+        padding:6px 2px;border-radius:10px;position:relative;transition:color .2s,background .2s;
+        min-width:0;
+      }
+      .bn-item i{font-size:16px;}
+      .bn-item span:not(.bn-badge){font-size:9.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+      .bn-item.active{color:#fff;background:rgba(255,255,255,.12);}
+      .bn-item:active{background:rgba(255,255,255,.18);}
+      .bn-badge{
+        position:absolute;top:2px;right:calc(50% - 20px);
+        background:#ef4444;color:#fff;font-size:8.5px;font-weight:700;
+        padding:1px 5px;border-radius:8px;min-width:14px;line-height:1.4;
+      }
+      /* Beri ruang di bawah agar konten tidak tertutup bottom nav */
+      body{padding-bottom:64px;}
+      /* Sidebar berfungsi sebagai drawer "Lainnya" — sembunyikan sidebar-user
+         duplikat info yang sudah cukup terwakili topbar, opsional dibiarkan */
+    }
+    @media(max-width:360px){
+      .bn-item span:not(.bn-badge){font-size:8.5px;}
+      .bn-item i{font-size:15px;}
+    }
 </style>
 </head>
 <body>
+<div id="page-bg-image" aria-hidden="true"></div>
 <canvas id="fx-bg" aria-hidden="true"></canvas>
 
 <script>
@@ -782,14 +982,36 @@ function logout(){
 </aside>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
+<!-- ══ BOTTOM NAV (mobile, ≤900px) ══
+     Navigasi utama diringkas jadi 5 aksi + "Lainnya" yang membuka
+     sidebar penuh sebagai drawer untuk akses menu selengkapnya. -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bn-item active" data-bn="utama" onclick="switchTab('utama',bnSyncSidebar('utama'))">
+    <i class="fas fa-th-large"></i><span>Utama</span>
+  </button>
+  <button class="bn-item" data-bn="buat" onclick="openFormPage()">
+    <i class="fas fa-plus-circle"></i><span>Buat</span>
+  </button>
+  <button class="bn-item" data-bn="layanan" onclick="switchTab('layanan',bnSyncSidebar('layanan'))">
+    <i class="fas fa-clipboard-list"></i><span>Permintaan</span><span class="bn-badge" id="bn-pending">–</span>
+  </button>
+  <button class="bn-item" data-bn="persetujuan" onclick="switchTab('persetujuan',bnSyncSidebar('persetujuan'))">
+    <i class="fas fa-check-circle"></i><span>Approval</span><span class="bn-badge" id="bn-persetujuan">–</span>
+  </button>
+  <button class="bn-item" data-bn="more" onclick="toggleSidebar()">
+    <i class="fas fa-ellipsis-h"></i><span>Lainnya</span>
+  </button>
+</nav>
+
 <!-- MAIN -->
 <div class="main">
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
       <button class="hamburger-btn" onclick="toggleSidebar()" title="Menu" aria-label="Buka menu"><i class="fas fa-bars"></i></button>
+      <img src="logo-siaga.png" alt="Logo SIAGA" class="topbar-logo" onerror="this.style.display='none'">
       <div>
-        <h1 id="topbar-title">Sistem Integrasi Administrasi General Affair</h1>
+        <h1 id="topbar-title">Sistem Administrasi General Affair</h1>
         <p id="tgl-now"></p>
       </div>
     </div>
@@ -1336,6 +1558,13 @@ function logout(){
   </div>
 </div>
 
+<!-- ══════════════════ MODAL ISI BERITA ACARA SERAH TERIMA (BAST) ══════════════════ -->
+<div class="modal-overlay" id="bast-modal">
+  <div class="modal" id="bast-modal-content" style="width:720px;max-width:95vw;max-height:88vh;overflow-y:auto;">
+    <!-- diisi oleh JS -->
+  </div>
+</div>
+
 <!-- MODAL PREVIEW LAMPIRAN -->
 <div class="modal-overlay" id="preview-modal">
   <div class="modal preview-modal">
@@ -1359,7 +1588,7 @@ function logout(){
         <div class="step-num">1</div>
         <div class="step-body">
           <h4>Buat Google Sheet</h4>
-          <p>Buat spreadsheet baru dengan sheet bernama <code>Data</code>. Kolom wajib: <code>ID</code>, <code>Jenis Layanan</code>, <code>Bidang</code>, <code>Nama Pemohon</code>, <code>Status</code>, <code>Prioritas</code>, <code>Biaya</code>, <code>Deskripsi</code>, <code>Dibuat</code>, <code>Timestamp</code>. Kolom opsional (dikirim dari form publik <code>form.html</code>): <code>NIP</code>, <code>Telepon</code>, <code>Email</code>, <code>Tanggal Dibutuhkan</code>. Khusus permintaan <b>multi-hari</b>: sistem otomatis menulis <b>beberapa baris</b> (1 baris per tanggal) dengan kolom tambahan <code>ID Induk</code> (sama untuk semua baris dalam 1 permintaan), <code>Hari Ke</code>, dan <code>Total Hari</code> — kolom-kolom ini akan otomatis dibuat di sheet saat data pertama masuk.</p>
+          <p>Buat spreadsheet baru dengan sheet bernama <code>Data</code>. Kolom wajib: <code>ID</code>, <code>Jenis Layanan</code>, <code>Bidang</code>, <code>Nama Pemohon</code>, <code>Status</code>, <code>Prioritas</code>, <code>Biaya</code>, <code>Deskripsi</code>, <code>Dibuat</code>, <code>Timestamp</code>. Kolom opsional (dikirim dari form publik <code>form.html</code>): <code>NIP</code>, <code>Telepon</code>, <code>Email</code>, <code>Tanggal Dibutuhkan</code>. Khusus permintaan <b>multi-hari</b>: sistem otomatis menulis <b>beberapa baris</b> (1 baris per tanggal) dengan kolom tambahan <code>ID Induk</code> (sama untuk semua baris dalam 1 permintaan), <code>Hari Ke</code>, dan <code>Total Hari</code> — kolom-kolom ini akan otomatis dibuat di sheet saat data pertama masuk. Kolom <code>Foto Serah Terima</code>, <code>Tanggal Serah Terima</code>, dan <code>Diserahkan Oleh</code> otomatis dibuat saat admin GAF pertama kali mengupload foto bukti serah terima barang dari halaman detail permintaan.</p>
           <p style="margin-top:8px;"><b>Sheet otomatis per layanan:</b> setiap permintaan baru (dan setiap perubahannya, mis. status disetujui) otomatis juga disalin/diperbarui ke sheet terpisah sesuai <code>Jenis Layanan</code>-nya (mis. sheet <code>ATK</code>, <code>Kendaraan</code>, <code>Konsumsi Khusus</code>, dst). Sheet-sheet ini dibuat otomatis oleh Apps Script — Anda tidak perlu membuatnya manual. Sheet <code>Data</code> tetap menjadi sumber utama yang dibaca dashboard.</p>
         </div>
       </div>
@@ -2480,6 +2709,16 @@ function doPost(e) {
       return output;
     }
 
+    // ── Upload Foto Serah Terima Barang ──
+    // Dipakai admin GAF saat menyerahkan barang ke pemohon: upload 1 foto bukti,
+    // otomatis diupload ke Drive + link-nya langsung ditulis ke kolom
+    // 'Foto Serah Terima' pada baris ID terkait (atomik, dikunci LockService).
+    if (payload.action === 'uploadFotoSerahTerima') {
+      var result2b = processUploadFotoSerahTerima(payload);
+      output.setContent(JSON.stringify(result2b));
+      return output;
+    }
+
     // ── [FIX] handler 'updateUser' — sebelumnya tidak ada di doPost, padahal
     // dashboard.html (fitur Settings/Pengaturan Profil, fungsi saveSettings())
     // sudah mengirim payload { action:'updateUser', username, email, telepon,
@@ -2531,6 +2770,117 @@ function processUpdateRow(payload) {
   lock.waitLock(30000);
   try {
     return processUpdateRowLocked(payload, ss, sheet);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// processUploadFotoSerahTerima — upload foto bukti serah terima barang
+// (diambil admin GAF saat menyerahkan barang ke pemohon) ke Google Drive,
+// lalu link-nya langsung ditulis ke kolom 'Foto Serah Terima' pada baris
+// ID terkait di sheet "Data". Bisa upload lebih dari 1 foto sekaligus
+// (link dipisah ';;' seperti kolom 'Lampiran'); foto baru DITAMBAHKAN,
+// bukan menimpa foto yang sudah ada sebelumnya.
+// Payload: { action:'uploadFotoSerahTerima', id:'REQ-xxxx',
+//            files:[{name,type,base64}, ...] }
+// ══════════════════════════════════════════════════════════════════════
+function processUploadFotoSerahTerima(payload) {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Data') || ss.getActiveSheet();
+  var reqId = payload.id;
+  var files = payload.files || [];
+
+  if (!reqId) return { success: false, error: 'ID permintaan kosong' };
+  if (!files.length) return { success: false, error: 'Tidak ada foto yang dikirim' };
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var lastCol = sheet.getLastColumn();
+    if (lastCol < 1) return { success: false, error: 'Sheet kosong' };
+
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idCol   = headers.indexOf('ID');
+    if (idCol === -1) return { success: false, error: 'Kolom ID tidak ditemukan' };
+
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return { success: false, error: 'Tidak ada data di sheet' };
+
+    var idValues  = sheet.getRange(2, idCol + 1, lastRow - 1, 1).getValues();
+    var targetRow = -1;
+    for (var i = 0; i < idValues.length; i++) {
+      if (String(idValues[i][0]).trim() === String(reqId).trim()) { targetRow = i + 2; break; }
+    }
+    if (targetRow === -1) return { success: false, error: 'ID tidak ditemukan: ' + reqId };
+
+    // Pastikan kolom 'Foto Serah Terima' & 'Tanggal Serah Terima' ada
+    ['Foto Serah Terima', 'Tanggal Serah Terima', 'Diserahkan Oleh'].forEach(function(col) {
+      if (headers.indexOf(col) === -1) {
+        sheet.getRange(1, headers.length + 1).setValue(col);
+        headers.push(col);
+      }
+    });
+
+    var bidangCol = headers.indexOf('Bidang');
+    var bidang = bidangCol > -1
+      ? (sheet.getRange(targetRow, bidangCol + 1).getValue() || 'Lainnya').toString().trim().toUpperCase()
+      : 'Lainnya';
+
+    var uploadedUrls  = [];
+    var uploadErrors  = [];
+    files.forEach(function(f, idx) {
+      try {
+        if (!f.base64) throw new Error('base64 kosong untuk file: ' + f.name);
+        if (!f.name)   throw new Error('nama file kosong pada index ' + idx);
+        var mimeType     = (f.type && f.type.trim() !== '') ? f.type : getMimeFromName(f.name);
+        var cleanBase64  = f.base64.replace(/\\s/g, '');
+        var bytes        = Utilities.base64Decode(cleanBase64);
+        var fileBlob     = Utilities.newBlob(bytes, mimeType, f.name);
+        // Folder: DRIVE_FOLDER_ID / {Bidang} / {ID Permintaan} / Serah Terima
+        var url = uploadFileToDrive(f.name, mimeType, fileBlob, [bidang, reqId, 'Serah Terima']);
+        uploadedUrls.push(url);
+      } catch(fe) {
+        uploadErrors.push('Gagal upload ' + (f.name || 'file-'+idx) + ': ' + fe.toString());
+      }
+    });
+
+    if (!uploadedUrls.length) {
+      return { success: false, error: 'Semua foto gagal diupload: ' + uploadErrors.join('; ') };
+    }
+
+    // Gabungkan dengan foto yang sudah ada sebelumnya (kalau ada), jangan menimpa
+    var fotoCol = headers.indexOf('Foto Serah Terima');
+    var existing = (sheet.getRange(targetRow, fotoCol + 1).getValue() || '').toString().trim();
+    var allUrls  = existing ? existing.split(';;').concat(uploadedUrls) : uploadedUrls;
+    sheet.getRange(targetRow, fotoCol + 1).setValue(allUrls.join(';;'));
+
+    var tglCol = headers.indexOf('Tanggal Serah Terima');
+    sheet.getRange(targetRow, tglCol + 1).setValue(
+      Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Jakarta', 'dd MMMM yyyy HH:mm')
+    );
+
+    var picCol = headers.indexOf('Diserahkan Oleh');
+    if (payload.oleh) sheet.getRange(targetRow, picCol + 1).setValue(payload.oleh);
+
+    // Sinkronkan ke sheet detail per-layanan juga
+    try {
+      var freshHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      var freshRow     = sheet.getRange(targetRow, 1, 1, freshHeaders.length).getValues()[0];
+      syncItemDetailSheets(freshHeaders, freshRow);
+    } catch (syncErr) {
+      Logger.log('❌ Gagal sync ke sheet detail (foto serah terima): ' + syncErr.toString());
+    }
+
+    return {
+      success: true,
+      urls: uploadedUrls,
+      allUrls: allUrls,
+      uploadErrors: uploadErrors,
+      message: uploadErrors.length
+        ? ('Sebagian foto tersimpan (' + uploadedUrls.length + '/' + files.length + '), sisanya gagal: ' + uploadErrors.join('; '))
+        : ('Berhasil upload ' + uploadedUrls.length + ' foto serah terima')
+    };
   } finally {
     lock.releaseLock();
   }
@@ -2915,6 +3265,8 @@ let trendChart, donutChart, barChart, bidangBarChart, bidangDonutChart, biayaBid
 // globalData    = subset dari masterDataAll setelah filter Bulan/Tahun diterapkan — inilah yang dipakai seluruh chart/tabel.
 let masterDataAll = [];
 const MONTH_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAY_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTH_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 let currentTabFilter = {layanan:'all', bidang:'all'};
 
 const SVC_CONFIG = [
@@ -3056,13 +3408,37 @@ function switchTab(tab, sidebarItem) {
     document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
     sidebarItem.classList.add('active');
   }
-  const titles = {utama:'Sistem Integrasi Administrasi General Affair', layanan:'Detail Jenis Layanan', bidang:'Detail per Bidang', kalender:'Kalender Permintaan', persetujuan:'Persetujuan Permintaan', 'single-detail':'Memuat...'};
+  // Sinkronkan status aktif ke bottom nav (mobile)
+  document.querySelectorAll('.bn-item').forEach(m=>m.classList.remove('active'));
+  const bnMatch = document.querySelector('.bn-item[data-bn="'+tab+'"]');
+  if(bnMatch) bnMatch.classList.add('active');
+
+  const titles = {utama:'Sistem Administrasi General Affair', layanan:'Detail Jenis Layanan', bidang:'Detail per Bidang', kalender:'Kalender Permintaan', persetujuan:'Persetujuan Permintaan', 'single-detail':'Memuat...'};
   document.getElementById('topbar-title').textContent = titles[tab];
 
   if (tab === 'layanan') renderLayananTab();
   if (tab === 'bidang') renderBidangTab();
   if (tab === 'kalender') renderKalenderTab();
   if (tab === 'persetujuan') renderPersetujuanTab();
+}
+
+// Ambil elemen .menu-item sidebar yang cocok dengan tab tertentu, dipakai
+// agar klik dari bottom nav tetap menandai item sidebar yang benar sebagai aktif.
+function bnSyncSidebar(tab){
+  const map = {
+    utama: 'switchTab(\'utama\'',
+    layanan: 'switchTab(\'layanan\'',
+    persetujuan: 'switchTab(\'persetujuan\'',
+    kalender: 'switchTab(\'kalender\''
+  };
+  const needle = map[tab];
+  if(!needle) return null;
+  let found = null;
+  document.querySelectorAll('.sidebar .menu-item').forEach(function(btn){
+    const onclk = btn.getAttribute('onclick') || '';
+    if(onclk.indexOf(needle) === 0) found = btn;
+  });
+  return found;
 }
 
 // ── NEUMORPHISM CHART HELPERS ──
@@ -3671,6 +4047,8 @@ function renderStats(s){
   document.getElementById('s-proses').textContent  = s.proses||0;
   document.getElementById('s-menunggu').textContent= s.menunggu||0;
   document.getElementById('sb-pending').textContent= s.menunggu||0;
+  const bnPending = document.getElementById('bn-pending');
+  if(bnPending) bnPending.textContent = s.menunggu||0;
 
   const pctSelesai = tot ? Math.round((s.selesai/tot)*100) : 0;
   document.getElementById('s-total-lbl').textContent   = `${tot} total permintaan`;
@@ -4845,6 +5223,8 @@ function updateApprovalBadge(){
     if(idx>=0 && idx<APPROVAL_STAGES.length && APPROVAL_STAGES[idx].roleCheck()) count++;
   });
   badge.textContent = count;
+  const bnBadge = document.getElementById('bn-persetujuan');
+  if(bnBadge) bnBadge.textContent = count;
 }
 
 // Kirim keputusan Setuju/Tolak untuk sebuah tahap ke Google Sheets + update tampilan lokal
@@ -6091,6 +6471,37 @@ function showDetailModal(r){
     </div>
   </div>`;
 
+  // ── Foto Serah Terima Barang ──
+  // Admin GAF mengupload foto bukti saat barang/permintaan diserahkan ke pemohon.
+  // Foto tersimpan ke Drive & link-nya ditulis ke kolom 'Foto Serah Terima' (bisa lebih dari 1 foto,
+  // ditambahkan/append, bukan menimpa yang sudah ada). Upload hanya bisa dilakukan admin (isAdminUser()),
+  // tapi foto yang sudah ada tetap terlihat oleh semua role yang bisa buka detail ini.
+  const fotoSerahRaw = r['Foto Serah Terima']||'';
+  const canUploadFoto = isAdminUser();
+  const fotoEntries = fotoSerahRaw ? fotoSerahRaw.split(';;').map(s=>s.trim()).filter(Boolean) : [];
+  const fotoThumbsHTML = fotoEntries.map((url,i)=>{
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const fileId = m ? m[1] : null;
+    const thumbUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w300` : url;
+    const openUrl = fileId ? `https://drive.google.com/uc?export=download&id=${fileId}` : url;
+    return `<a href="${openUrl}" target="_blank" title="Foto Serah Terima ${i+1}" style="display:block;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1.5px solid var(--border);flex-shrink:0;">
+      <img src="${thumbUrl}" alt="Foto Serah Terima ${i+1}" style="width:100%;height:100%;object-fit:cover;">
+    </a>`;
+  }).join('');
+  const fotoSerahTerimaHTML = `<div class="detail-item full">
+    <label><i class="fas fa-camera-retro" style="margin-right:4px;color:#0f9d58;"></i>Foto Serah Terima Barang${fotoEntries.length?` (${fotoEntries.length} foto)`:''}</label>
+    <div class="val" style="padding:0;">
+      ${r['Tanggal Serah Terima'] ? `<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;"><i class="fas fa-clock" style="margin-right:4px;"></i>Diserahkan: <b>${r['Tanggal Serah Terima']}</b>${r['Diserahkan Oleh']?` oleh <b>${r['Diserahkan Oleh']}</b>`:''}</div>` : ''}
+      ${fotoEntries.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:${canUploadFoto?'12px':'0'};">${fotoThumbsHTML}</div>` : (canUploadFoto?'':'<div style="font-size:12px;color:var(--muted);">Belum ada foto serah terima.</div>')}
+      ${canUploadFoto ? `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <input type="file" id="foto-serah-input-${idSafe}" accept="image/*" capture="environment" multiple style="font-size:11.5px;max-width:230px;">
+        <button type="button" onclick="uploadFotoSerahTerima('${idSafe}')" id="foto-serah-btn-${idSafe}" style="background:#0f9d58;border:none;border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:700;color:#fff;cursor:pointer;"><i class="fas fa-upload"></i> Upload Foto Serah Terima</button>
+        <button type="button" onclick="openBastModal('${idSafe}')" style="background:#1e3a8a;border:none;border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:700;color:#fff;cursor:pointer;"><i class="fas fa-file-signature"></i> Buat Berita Acara Serah Terima</button>
+      </div>` : ''}
+    </div>
+  </div>`;
+
   document.getElementById('detail-modal-content').innerHTML=`
     <div class="modal-header">
       <div class="d-icon" style="background:${svc.bg};"><i class="fas ${svc.icon}" style="color:${svc.color};"></i></div>
@@ -6114,6 +6525,7 @@ function showDetailModal(r){
         <div class="detail-item full"><label><i class="fas fa-route" style="color:var(--primary-light);margin-right:4px;"></i>Progress Persetujuan</label><div class="val">${buildApprovalTrackerHTML(r)}</div></div>
         ${itemsFormHTML}
         ${attachHTML}
+        ${fotoSerahTerimaHTML}
       </div>
     </div>
     ${isRequestFullyApproved(r) ? `
@@ -6131,8 +6543,333 @@ function showDetailModal(r){
   `;
   document.getElementById('detail-modal').classList.add('show');
 }
+// ── Upload Foto Serah Terima Barang (admin GAF) ──
+// Membaca file yang dipilih di input#foto-serah-input-{id}, ubah ke base64, kirim ke
+// Apps Script (action:'uploadFotoSerahTerima'). Setelah berhasil, modal detail & data
+// direfresh supaya foto langsung terlihat tanpa perlu buka ulang manual.
+function fileToBase64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result.split(',')[1] || '');
+    reader.onerror = ()=> reject(new Error('Gagal membaca file: ' + file.name));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadFotoSerahTerima(idSafe){
+  if(!isAdminUser()){ showToast('Hanya admin yang dapat mengupload foto serah terima','error'); return; }
+  const input = document.getElementById(`foto-serah-input-${idSafe}`);
+  const btn = document.getElementById(`foto-serah-btn-${idSafe}`);
+  if(!input || !input.files || !input.files.length){
+    showToast('Pilih minimal 1 foto terlebih dahulu','error');
+    return;
+  }
+  if(!APPS_SCRIPT_URL || !APPS_SCRIPT_URL.includes('script.google.com')){
+    showToast('Backend belum dikonfigurasi (mode demo) — foto tidak dapat diupload','error');
+    return;
+  }
+
+  const files = Array.from(input.files);
+  const tooBig = files.find(f=>f.size > 8*1024*1024);
+  if(tooBig){ showToast(`Ukuran foto "${tooBig.name}" terlalu besar (maks 8MB)`,'error'); return; }
+
+  const origLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner" style="width:12px;height:12px;border-width:2px;"></span> Mengupload ${files.length} foto...`;
+
+  try{
+    const filesB64 = await Promise.all(files.map(async f=>({
+      name: f.name, type: f.type || 'image/jpeg', base64: await fileToBase64(f)
+    })));
+
+    // Cari nama user yang sedang login untuk dicatat sebagai "Diserahkan Oleh"
+    const u = window.AUTH_USER || {};
+    const oleh = u.nama || u.username || '';
+
+    // Kirim langsung (bukan lewat postToAppsScript) karena butuh timeout lebih panjang untuk upload foto
+    const res = await new Promise((resolve, reject)=>{
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', APPS_SCRIPT_URL, true);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+      xhr.timeout = 60000;
+      xhr.onload = function(){
+        let r = null;
+        try{ r = JSON.parse(xhr.responseText); }catch(e){}
+        if(r && r.success === false){ reject(new Error(r.error || 'Gagal upload')); return; }
+        resolve(r || {});
+      };
+      xhr.onerror = function(){ reject(new Error('Gagal menghubungi server. Periksa koneksi/konfigurasi Apps Script.')); };
+      xhr.ontimeout = function(){ reject(new Error('Waktu upload habis (60 detik). Coba dengan foto lebih kecil atau koneksi lebih stabil.')); };
+      xhr.send(JSON.stringify({ action:'uploadFotoSerahTerima', id: idSafe, oleh: oleh, files: filesB64 }));
+    });
+
+    showToast(res.message || `Berhasil upload ${files.length} foto serah terima`, 'success');
+
+    // Perbarui data lokal supaya modal & tabel langsung menampilkan foto baru
+    const row = masterDataAll.find(r=>r['ID']===idSafe) || globalData.find(r=>r['ID']===idSafe);
+    if(row){
+      row['Foto Serah Terima'] = (res.allUrls || []).join(';;');
+      if(oleh) row['Diserahkan Oleh'] = oleh;
+      showDetailModal(row); // render ulang modal supaya foto baru langsung tampil
+      refreshAllViews();
+    }
+    loadDataSilent();
+  } catch(err){
+    console.error('uploadFotoSerahTerima error:', err);
+    showToast((err && err.message) || 'Gagal mengupload foto', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origLabel;
+  }
+}
+
 function closeDetailModal(){ document.getElementById('detail-modal').classList.remove('show'); }
 document.getElementById('detail-modal').addEventListener('click',function(e){ if(e.target===this) closeDetailModal(); });
+
+// ══════════════════════════════════════════════════════════════════════
+// BERITA ACARA SERAH TERIMA (BAST) — sesuai template resmi PT PLN Indonesia
+// Power Services PLTU Kalbar 1. Admin GAF isi data di modal ini dulu
+// (nomor BAST, pihak menyerahkan/menerima, daftar barang), baru dicetak
+// jadi PDF dengan tata letak yang sama seperti template Word aslinya.
+// ══════════════════════════════════════════════════════════════════════
+const INSTANSI_BAST = 'PT PLN Indonesia Power Services PLTU Kalbar 1';
+
+// Ambil rincian item request (item + qty + satuan + keterangan) sebagai draft awal tabel BAST,
+// disesuaikan field-nya per jenis layanan. Admin tetap bisa edit/tambah/hapus baris di modal.
+function getBastItemDraft(r){
+  const jenis = r['Jenis Layanan'];
+  let raw = [];
+  try{
+    if(jenis==='Reimburse Biaya') raw = JSON.parse(r['Reimburse Items']||'[]');
+    else if(jenis==='Perbaikan Sipil') raw = JSON.parse(r['Sipil Items']||'[]');
+    else if(jenis==='Kendaraan') raw = JSON.parse(r['Kendaraan Items']||'[]');
+    else if(jenis==='Ruang Meeting') raw = JSON.parse(r['Ruang Meeting Items']||'[]');
+    else raw = JSON.parse(r['Pengajuan Items']||'[]');
+  }catch(e){ raw = []; }
+  const mapped = raw.map(it=>{
+    if(jenis==='Reimburse Biaya') return { item: it.deskripsi||'', qty:'', satuan:'', ket: it.nota?`No. Nota: ${it.nota}`:'' };
+    if(jenis==='Perbaikan Sipil') return { item: it.detail||'', qty:'', satuan:'', ket: [it.area,it.lokasi].filter(Boolean).join(' - ') };
+    if(jenis==='Kendaraan') return { item: it.kendaraan||'', qty: it.qty||'', satuan:'', ket: it.keperluan||'' };
+    if(jenis==='Ruang Meeting') return { item: it.ruang||'', qty:'', satuan:'', ket: it.agenda||'' };
+    return { item: it.item||'', qty: it.qty||'', satuan: it.satuan||'', ket:'' };
+  }).filter(it=>it.item);
+  return mapped.length ? mapped : [{item:'',qty:'',satuan:'',ket:''}];
+}
+
+function bastItemRowHTML(i, item, qty, satuan, ket){
+  return `<tr data-bast-row="${i}">
+    <td style="text-align:center;color:var(--muted);padding:5px 6px;">${i+1}</td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-item" value="${(item||'').replace(/"/g,'&quot;')}" placeholder="Nama item" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-qty" value="${(qty||'').toString().replace(/"/g,'&quot;')}" placeholder="-" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;text-align:center;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-satuan" value="${(satuan||'').replace(/"/g,'&quot;')}" placeholder="-" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;text-align:center;"></td>
+    <td style="padding:5px 6px;"><input type="text" class="bast-ket" value="${(ket||'').replace(/"/g,'&quot;')}" placeholder="Keterangan" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;"></td>
+    <td style="text-align:center;padding:5px 6px;"><button type="button" onclick="removeBastItemRow(this)" title="Hapus baris" style="background:none;border:none;color:#ef4444;cursor:pointer;"><i class="fas fa-times"></i></button></td>
+  </tr>`;
+}
+function addBastItemRow(){
+  const tbody = document.getElementById('bast-items-tbody');
+  const i = tbody.children.length;
+  tbody.insertAdjacentHTML('beforeend', bastItemRowHTML(i,'','','',''));
+}
+// Catatan: sebelum perbaikan ini, openBastModal() memanggil bastItemRowHTML(i, it.nama, '', it.ket)
+// — hanya 4 argumen padahal fungsi butuh 5 (i, item, qty, satuan, ket). Akibatnya it.ket
+// (argumen ke-4 yang dikirim) tertukar masuk ke parameter `satuan`, dan kolom `ket` selalu
+// kosong. Skema data getBastItemDraft() juga sudah pakai {item, qty, satuan, ket}, bukan
+// {nama, ket} — jadi it.nama pun sebenarnya undefined. Sudah diperbaiki di openBastModal().
+function removeBastItemRow(btn){
+  const tbody = document.getElementById('bast-items-tbody');
+  if(tbody.children.length <= 1){ showToast('Minimal harus ada 1 baris barang','error'); return; }
+  btn.closest('tr').remove();
+  Array.from(tbody.children).forEach((tr,i)=>{ tr.dataset.bastRow=i; tr.querySelector('td').textContent = i+1; });
+}
+
+function openBastModal(idSafe){
+  const r = (masterDataAll.find(x=>x['ID']===idSafe) || globalData.find(x=>x['ID']===idSafe));
+  if(!r){ showToast('Data permintaan tidak ditemukan','error'); return; }
+  const u = window.AUTH_USER || {};
+  const now = new Date();
+  const tglKalimat = `${DAY_ID[now.getDay()]}, tanggal ${String(now.getDate()).padStart(2,'0')} ${MONTH_ID[now.getMonth()]} ${now.getFullYear()}`;
+  const noBastDefault = `___/BAST/PIPS-KLB/${MONTH_ROMAN[now.getMonth()]}/${now.getFullYear()}`;
+  const items = getBastItemDraft(r);
+  const itemsRowsHTML = items.map((it,i)=>bastItemRowHTML(i, it.item, it.qty, it.satuan, it.ket)).join('');
+
+  document.getElementById('bast-modal-content').innerHTML = `
+    <h2 style="font-size:16px;margin-bottom:4px;"><i class="fas fa-file-signature" style="color:#1e3a8a;margin-right:6px;"></i>Berita Acara Serah Terima</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">Untuk permintaan <b style="color:var(--primary-light);">${r['ID']||'-'}</b> — lengkapi data di bawah, lalu cetak sebagai PDF.</p>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">No. BAST</label>
+      <input type="text" id="bast-no" value="${noBastDefault}" style="width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+    </div>
+    <div class="form-group" style="margin-bottom:18px;">
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">Kalimat Tanggal (otomatis, bisa diedit)</label>
+      <input type="text" id="bast-tanggal-kalimat" value="${tglKalimat}" style="width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+      <div style="border:1px solid var(--border);border-radius:10px;padding:12px;">
+        <div style="font-weight:700;font-size:12.5px;margin-bottom:8px;color:#1e3a8a;">Yang Menyerahkan</div>
+        <label style="font-size:11px;color:var(--muted);">Nama</label>
+        <input type="text" id="bast-menyerahkan-nama" value="${(u.nama||u.username||'').replace(/"/g,'&quot;')}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <label style="font-size:11px;color:var(--muted);">Jabatan</label>
+        <input type="text" id="bast-menyerahkan-jabatan" placeholder="Contoh: Admin GAF" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <div style="font-size:10.5px;color:var(--muted);">Instansi: ${INSTANSI_BAST}</div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:10px;padding:12px;">
+        <div style="font-weight:700;font-size:12.5px;margin-bottom:8px;color:#1e3a8a;">Yang Menerima</div>
+        <label style="font-size:11px;color:var(--muted);">Nama</label>
+        <input type="text" id="bast-menerima-nama" value="${(r['Nama Pemohon']||'').replace(/"/g,'&quot;')}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <label style="font-size:11px;color:var(--muted);">Jabatan</label>
+        <input type="text" id="bast-menerima-jabatan" placeholder="Contoh: Staff ${r['Bidang']||''}" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:8px;">
+        <div style="font-size:10.5px;color:var(--muted);">Instansi: ${INSTANSI_BAST}</div>
+      </div>
+    </div>
+
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Daftar Barang</label>
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:8px;">
+      <thead><tr style="background:#eef2ff;color:#1e3a8a;">
+        <th style="padding:6px;text-align:left;width:28px;">No</th>
+        <th style="padding:6px;text-align:left;">Item</th>
+        <th style="padding:6px;text-align:left;width:60px;">Qty</th>
+        <th style="padding:6px;text-align:left;width:70px;">Satuan</th>
+        <th style="padding:6px;text-align:left;">Keterangan</th>
+        <th style="width:28px;"></th>
+      </tr></thead>
+      <tbody id="bast-items-tbody">${itemsRowsHTML}</tbody>
+    </table>
+    <button type="button" onclick="addBastItemRow()" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11.5px;cursor:pointer;margin-bottom:20px;"><i class="fas fa-plus"></i> Tambah Baris</button>
+
+    <div style="display:flex;gap:10px;">
+      <button type="button" onclick="closeBastModal()" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">Batal</button>
+      <button type="button" onclick="generateBastPDF('${idSafe}')" style="flex:2;background:#1e3a8a;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;"><i class="fas fa-file-pdf"></i> Cetak PDF Berita Acara Serah Terima</button>
+    </div>
+  `;
+  document.getElementById('bast-modal').classList.add('show');
+}
+function closeBastModal(){ document.getElementById('bast-modal').classList.remove('show'); }
+document.getElementById('bast-modal').addEventListener('click',function(e){ if(e.target===this) closeBastModal(); });
+
+function generateBastPDF(idSafe){
+  const r = (masterDataAll.find(x=>x['ID']===idSafe) || globalData.find(x=>x['ID']===idSafe)) || {};
+  const noBast = document.getElementById('bast-no').value.trim() || '-';
+  const tglKalimat = document.getElementById('bast-tanggal-kalimat').value.trim() || '-';
+  const menyerahkanNama = document.getElementById('bast-menyerahkan-nama').value.trim() || '-';
+  const menyerahkanJabatan = document.getElementById('bast-menyerahkan-jabatan').value.trim() || '-';
+  const menerimaNama = document.getElementById('bast-menerima-nama').value.trim() || '-';
+  const menerimaJabatan = document.getElementById('bast-menerima-jabatan').value.trim() || '-';
+  const rows = Array.from(document.querySelectorAll('#bast-items-tbody tr')).map(tr=>({
+    item: tr.querySelector('.bast-item').value.trim(),
+    qty: tr.querySelector('.bast-qty').value.trim(),
+    satuan: tr.querySelector('.bast-satuan').value.trim(),
+    ket: tr.querySelector('.bast-ket').value.trim()
+  })).filter(it=>it.item || it.qty || it.satuan || it.ket);
+
+  if(!rows.length){ showToast('Isi minimal 1 baris barang terlebih dahulu','error'); return; }
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 16;
+
+    // ── Logo (di tengah atas, sesuai TEMPLATE_SERAH_TERIMA.docx) ──
+    try{
+      const logoW = 30, logoH = logoW * (183/600);
+      doc.addImage(PLN_IPS_LOGO_B64, 'PNG', pageWidth/2 - logoW/2, y, logoW, logoH);
+      y += logoH + 6;
+    }catch(e){ console.warn('Gagal menambahkan logo pada PDF BAST:', e); y += 20; }
+
+    // ── Judul & No BAST (di tengah) ──
+    doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('BERITA ACARA SERAH TERIMA', pageWidth/2, y, {align:'center'}); y += 6.5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    doc.text(`No. ${noBast}`, pageWidth/2, y, {align:'center'}); y += 11;
+
+    // ── Kalimat pembuka ──
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const openText = `Pada Hari ini ${tglKalimat} yang bertanda tangan dibawah ini :`;
+    const openLines = doc.splitTextToSize(openText, pageWidth-28);
+    doc.text(openLines, 14, y); y += openLines.length*5.5 + 8;
+
+    // ── Blok Yang Menyerahkan / Yang Menerima (Instansi tetap, sesuai template) ──
+    const writePartyBlock = (title, nama, jabatan) => {
+      doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+      doc.text(title, 14, y); y += 7;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      const fields = [['Nama',nama],['Jabatan',jabatan],['Instansi',INSTANSI_BAST]];
+      fields.forEach(([label,val])=>{
+        doc.text(label, 20, y); doc.text(':', 45, y);
+        doc.text(String(val), 49, y, {maxWidth: pageWidth-49-14});
+        y += 6;
+      });
+      y += 4;
+    };
+    writePartyBlock('Yang Menyerahkan', menyerahkanNama, menyerahkanJabatan);
+    writePartyBlock('Yang Menerima', menerimaNama, menerimaJabatan);
+
+    // ── Kalimat penghubung ──
+    doc.setFontSize(10);
+    const midLines = doc.splitTextToSize('Telah menyerahkan kepada pihak penerima barang dengan keterangan sebagai berikut :', pageWidth-28);
+    doc.text(midLines, 14, y); y += midLines.length*5.5 + 4;
+
+    // ── Tabel barang (kolom sesuai template: No, Item, Qty, Satuan, Keterangan) ──
+    doc.autoTable({
+      startY: y,
+      head: [['No','Item','Qty','Satuan','Keterangan']],
+      body: rows.map((it,i)=>[i+1, it.item||'-', it.qty||'-', it.satuan||'-', it.ket||'-']),
+      theme: 'grid',
+      headStyles: { fillColor:[30,58,138], fontSize:9, halign:'center' },
+      styles: { fontSize:9, cellPadding:2.5 },
+      columnStyles: {
+        0: { cellWidth:10, halign:'center' },
+        2: { cellWidth:18, halign:'center' },
+        3: { cellWidth:22, halign:'center' }
+      },
+      margin: { left:14, right:14 }
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // ── Kalimat penutup ──
+    if(y > 245){ doc.addPage(); y = 20; }
+    doc.setFontSize(10);
+    const closeLines = doc.splitTextToSize('Demikianlah serah terima ini dibuat dengan sebenarnya, besar harapan barang dapat dipergunakan dan dijaga sebagaimana mestinya.', pageWidth-28);
+    doc.text(closeLines, 14, y); y += closeLines.length*5.5 + 18;
+
+    // ── Blok tanda tangan — DITENGAHKAN sesuai TEMPLATE_SERAH_TERIMA.docx ──
+    // (bukan menempel penuh ke margin kiri/kanan seperti versi sebelumnya; dua kolom
+    // sempit diposisikan simetris di tengah halaman, seperti tabel 2 kolom pada template).
+    if(y > 245){ doc.addPage(); y = 20; }
+    const sigColW = 68;               // lebar tiap kolom tanda tangan
+    const sigGap  = 14;                // jarak antar kolom
+    const sigBlockW = sigColW*2 + sigGap;
+    const sigStartX = (pageWidth - sigBlockW) / 2;   // titik mulai blok, ditengahkan ke halaman
+    const sigX = [sigStartX, sigStartX + sigColW + sigGap];
+    const sigLabel = ['Yang menyerahkan', 'Yang Menerima'];
+    const sigNama = [menyerahkanNama, menerimaNama];
+    const sigJabatan = [menyerahkanJabatan, menerimaJabatan];
+
+    sigLabel.forEach((lbl,i)=>{
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      doc.text(lbl, sigX[i] + sigColW/2, y, {align:'center'});
+    });
+    const ySign = y + 26; // ruang kosong untuk tanda tangan basah
+    sigNama.forEach((nm,i)=>{
+      doc.setFont('helvetica','bold'); doc.setFontSize(10);
+      doc.text(nm, sigX[i] + sigColW/2, ySign, {align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.text(sigJabatan[i]||'', sigX[i] + sigColW/2, ySign+5, {align:'center'});
+    });
+
+    const fname = `BAST_${(r['ID']||'permintaan').replace(/[^a-zA-Z0-9-]/g,'_')}.pdf`;
+    doc.save(fname);
+    showToast('Berita Acara Serah Terima berhasil dibuat','success');
+    closeBastModal();
+  }catch(err){
+    console.error(err);
+    showToast('Gagal membuat PDF: '+err.message,'error');
+  }
+}
+
 
 // ── GOOGLE SHEETS CONFIG MODAL ──
 function openGSConfig(){
@@ -6176,7 +6913,7 @@ function copyAppsScript(){
 // ── EXPORT ──
 function exportCSV(){
   if(!globalData.length){ showToast('Belum ada data untuk diekspor','error'); return; }
-  const headers=['ID','ID Induk','Hari Ke','Total Hari','Jenis Layanan','Bidang','Nama Pemohon','Status','Prioritas','Dibuat','Tanggal Dibutuhkan','Tanggal Selesai','PIC','Deskripsi'];
+  const headers=['ID','ID Induk','Hari Ke','Total Hari','Jenis Layanan','Bidang','Nama Pemohon','Status','Prioritas','Dibuat','Tanggal Dibutuhkan','Tanggal Selesai','PIC','Foto Serah Terima','Tanggal Serah Terima','Diserahkan Oleh','Deskripsi'];
   const csv=[headers.join(','),...globalData.map(r=>headers.map(h=>`"${(r[h]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
@@ -6470,9 +7207,91 @@ window.addEventListener('message', function(e){
   }
 });
 
+// ══ Penyesuaian dinamis posisi sticky (topbar/period-bar/tab-nav) ══
+// Menjaga area header tetap "freeze" saat scroll, akurat walau tinggi
+// period-bar berubah (mis. saat filter wrap ke 2 baris di layar sempit).
+function adjustStickyOffsets(){
+  const topbar = document.querySelector('.topbar');
+  const periodBar = document.querySelector('.period-bar');
+  const tabNav = document.querySelector('.tab-nav');
+  if(!topbar || !tabNav) return;
+  const topbarH = topbar.offsetHeight;
+  let stackH = topbarH;
+  if(periodBar && periodBar.style.display !== 'none' && periodBar.offsetParent !== null){
+    periodBar.style.top = topbarH + 'px';
+    stackH += periodBar.offsetHeight;
+  }
+  tabNav.style.top = stackH + 'px';
+}
+window.addEventListener('resize', adjustStickyOffsets);
+window.addEventListener('load', adjustStickyOffsets);
+setTimeout(adjustStickyOffsets, 300);
+setTimeout(adjustStickyOffsets, 1000);
+
+// ══ SIDEBAR COLLAPSIBLE: bungkus teks menu-item jadi <span> agar bisa
+// disembunyikan/ditampilkan halus saat sidebar collapse/expand ══
+function wrapMenuItemLabels(){
+  document.querySelectorAll('.sidebar .menu-item').forEach(function(btn){
+    if(btn.querySelector('.menu-item-label')){
+      if(!btn.getAttribute('data-tooltip')){
+        const lbl = btn.querySelector('.menu-item-label');
+        if(lbl) btn.setAttribute('data-tooltip', lbl.textContent.trim());
+      }
+      return; // sudah dibungkus
+    }
+    let labelText = '';
+    btn.childNodes.forEach(function(node){
+      if(node.nodeType === 3 && node.textContent.trim() !== ''){
+        const span = document.createElement('span');
+        span.className = 'menu-item-label';
+        span.textContent = node.textContent;
+        labelText = node.textContent.trim();
+        btn.replaceChild(span, node);
+      }
+    });
+    if(labelText) btn.setAttribute('data-tooltip', labelText);
+  });
+  const logoEl = document.querySelector('.sidebar-logo');
+  if(logoEl && !logoEl.querySelector('.sidebar-collapse-btn')){
+    const collapseBtn = document.createElement('button');
+    collapseBtn.className = 'sidebar-collapse-btn';
+    collapseBtn.title = 'Ciutkan/lebarkan sidebar';
+    collapseBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    collapseBtn.onclick = function(e){
+      e.stopPropagation();
+      toggleSidebarCollapse();
+    };
+    logoEl.style.position = 'relative';
+    logoEl.appendChild(collapseBtn);
+  }
+  try{
+    if(sessionStorage.getItem('sidebar_collapsed') === '1' && window.innerWidth > 900){
+      setSidebarCollapsed(true);
+    }
+  }catch(err){}
+}
+wrapMenuItemLabels();
+
+// Toggle collapse/expand sidebar desktop, dipicu klik tombol di sidebar-logo
+function setSidebarCollapsed(collapsed){
+  const sb = document.querySelector('.sidebar');
+  const btn = document.querySelector('.sidebar-collapse-btn i');
+  if(!sb) return;
+  sb.classList.toggle('collapsed', collapsed);
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
+  if(btn) btn.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+  try{ sessionStorage.setItem('sidebar_collapsed', collapsed ? '1':'0'); }catch(err){}
+  setTimeout(adjustStickyOffsets, 300);
+}
+function toggleSidebarCollapse(){
+  const sb = document.querySelector('.sidebar');
+  setSidebarCollapsed(!sb.classList.contains('collapsed'));
+}
+
 initAuthUI();
 initCharts();
 loadData();
+setTimeout(adjustStickyOffsets, 500);
 </script>
 <!-- ══════════════════════ HALAMAN FORM PENGAJUAN (in-page, bukan tab baru) ══════════════════════ -->
 <div id="form-page-overlay" style="display:none;position:fixed;inset:0;background:#F5F6FB;z-index:5000;">
