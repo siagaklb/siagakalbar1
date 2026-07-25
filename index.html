@@ -646,6 +646,44 @@
       .lbc-count{font-size:26px;}
     }
 
+    /* ══ MOBILE: rapikan modal detail permintaan (List Pengajuan, Foto Serah
+       Terima, kotak persetujuan) — sebelumnya kolom tabel & tombol aksi
+       berdempetan/terlipat tidak rapi di layar HP sempit ══ */
+    @media(max-width:640px){
+      .detail-modal-body{padding:14px 16px;}
+      .detail-modal .modal-header{padding:16px 16px 12px;gap:10px;}
+      .detail-modal .modal-header .d-icon{width:42px;height:42px;font-size:18px;}
+      .detail-modal .modal-header h2{font-size:14.5px;}
+      .detail-modal .detail-close-btn,.detail-modal .pdf-approved-box{margin:0 16px 16px;}
+
+      /* Tabel List Pengajuan: pastikan kolom Item cukup lebar & Qty/Satuan
+         tidak "menciut" jadi 1-2 karakter; scroll horizontal jika perlu. */
+      #items-edit-table{table-layout:auto;min-width:420px;}
+      #items-edit-table th,#items-edit-table td{padding:5px 5px!important;font-size:11px!important;}
+      #items-edit-table th:first-child,#items-edit-table td:first-child{width:22px!important;}
+      #items-edit-table input.items-edit-input{min-width:56px;padding:5px 4px!important;font-size:11px!important;}
+      #items-edit-table input.items-edit-biaya{min-width:78px;}
+      .detail-item .val{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+      /* Tombol "Tambah Baris" / "Simpan Perubahan": stack rapi, full-width */
+      .detail-item.full div[style*="display:flex"][style*="gap:8px"]{flex-direction:column;}
+      .detail-item.full div[style*="display:flex"][style*="gap:8px"] button{width:100%;justify-content:center;display:flex;align-items:center;gap:6px;padding:9px!important;}
+
+      /* Foto Serah Terima: input file & 2 tombol aksi ditumpuk, masing-masing full-width */
+      .detail-item.full div[style*="align-items:center"][style*="flex-wrap:wrap"]{flex-direction:column;align-items:stretch!important;}
+      .detail-item.full div[style*="align-items:center"][style*="flex-wrap:wrap"] input[type="file"]{max-width:100%!important;width:100%;box-sizing:border-box;}
+      .detail-item.full div[style*="align-items:center"][style*="flex-wrap:wrap"] button{width:100%;justify-content:center;padding:10px!important;}
+
+      /* Kotak "Permintaan telah disetujui penuh": teks & tombol tidak berdesakan */
+      .pdf-approved-box{padding:12px;}
+      .pdf-approved-info b{font-size:12px;}
+      .pdf-approved-info span{font-size:10.5px;line-height:1.4;}
+      .detail-pdf-btn{font-size:12px;padding:10px;}
+
+      /* Thumbnail foto serah terima: sedikit lebih kecil supaya muat rapi berjajar */
+      .detail-item.full div[style*="display:flex"][style*="gap:8px"][style*="flex-wrap:wrap"] a[style*="width:84px"]{width:70px!important;height:70px!important;}
+    }
+
     /* ══════════════════════════════════════════════════════════════
        TEMA FINANCIAL DASHBOARD — INDIGO & EMERALD (lapisan penyempurnaan visual)
        Terinspirasi gaya "YTD financial dashboard": kartu KPI terang,
