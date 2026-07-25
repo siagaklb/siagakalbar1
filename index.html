@@ -58,6 +58,9 @@
     .logo-icon{width:42px;height:42px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0;}
     .logo-text h2{font-size:15px;font-weight:700;color:#fff;line-height:1.2;}
     .logo-text span{font-size:11px;color:rgba(255,255,255,.55);}
+    /* Logo kedua (ikon app SIAGA) hanya untuk mode sidebar collapsed di desktop —
+       tersembunyi secara default di semua layar (termasuk HP) agar tidak dobel dengan logo PLN */
+    .sidebar-logo-collapsed{display:none;}
     .sidebar-menu{padding:14px 12px;flex:1;overflow-y:auto;}
     .menu-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);padding:10px 8px 5px;}
     .menu-group{margin-bottom:2px;}
@@ -553,6 +556,11 @@
       .topbar-right{flex-shrink:0;}
       .btn-new .btn-new-label{display:none;}
       .btn-new{padding:0 12px;}
+      /* Logo di sidebar (mobile): tampilkan HANYA bagian kiri gambar (logo PLN),
+         bagian kanan yang melebar (lambang/logo kedua) dipotong via container fixed-width + overflow:hidden */
+      .sidebar-logo{overflow:hidden;max-width:100%;}
+      .sidebar-logo-crop{width:150px;height:38px;overflow:hidden;position:relative;flex-shrink:0;}
+      .sidebar-logo-crop img:not(.sidebar-logo-collapsed){position:absolute;left:0;top:0;height:38px;width:auto;max-width:none;}
       /* Tombol ringkas: satu baris, menggantikan period-bar penuh sampai di-tap */
       .period-toggle-btn{display:flex;align-items:center;justify-content:space-between;width:100%;
         background:linear-gradient(100deg,var(--primary-dark),var(--primary) 60%,#0A4FC4);
@@ -745,6 +753,9 @@
       .g2,.g3,.bidang-chart-section{grid-template-columns:1fr!important;}
       .detail-grid{grid-template-columns:1fr 1fr!important;}
       .cal-nav-title{min-width:110px;}
+      /* Tablet landscape: tabel tetap punya lebar minimum agar bisa discroll horizontal
+         alih-alih kolom terjejal/kepotong tanpa cara untuk melihat sisanya */
+      .req-table{min-width:640px;}
     }
 
     /* ── TABLET/HP dalam mode landscape kecil ── */
@@ -766,11 +777,8 @@
       .cal-day{min-height:44px;}
     }
 
-    /* Tabel & konten lebar lain: pastikan bisa discroll di semua layar */
-    .table-scroll{width:100%;}
-    @media(max-width:1180px){
-      .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    }
+    /* Tabel & konten lebar lain: pastikan bisa discroll di semua layar (termasuk tablet landscape) */
+    .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;}
 
     /* Kartu sedikit translucent supaya tekstur background gambar tetap terasa,
        tanpa mengurangi keterbacaan konten */
@@ -976,7 +984,9 @@ function logout(){
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="https://lh3.googleusercontent.com/d/1t6453RlZEAnfJ0Vv2kSI_FcwGJhBbH1z" alt="Logo PLN Indonesia Power Services" style="height:38px;width:auto;">
+    <div class="sidebar-logo-crop">
+      <img src="https://lh3.googleusercontent.com/d/1t6453RlZEAnfJ0Vv2kSI_FcwGJhBbH1z" alt="Logo PLN Indonesia Power Services" style="height:38px;width:auto;">
+    </div>
     <img src="icon-192.png" alt="SIAGA" class="sidebar-logo-collapsed">
   </div>
   <div class="sidebar-menu">
