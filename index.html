@@ -1238,6 +1238,9 @@ function logout(){
       <option value="Menunggu">Menunggu</option>
       <option value="Ditolak">Ditolak</option>
     </select>
+    <select class="period-select" id="period-pic-select" onchange="onPeriodFilterChange()">
+      <option value="all">Semua PIC</option>
+    </select>
     <button class="period-reset" onclick="resetPeriodFilter()"><i class="fas fa-rotate-left"></i> Reset</button>
     <span class="period-badge" id="period-badge">Menampilkan: Semua Periode</span>
   </div>
@@ -2820,6 +2823,7 @@ function doGet(e) {
   try {
     if      (action === 'getStats')      result = getStats();
     else if (action === 'getAll')        result = getAllData();
+    else if (action === 'getAdminUsers') result = getAdminUsers();
     else if (action === 'login')         result = login(e.parameter.username, e.parameter.password);
     else if (action === 'addRowFallback') {
       var dataParam = e.parameter && e.parameter.data;
@@ -3348,6 +3352,32 @@ function getStats() {
     recent  : normalizedRows.slice(-15).reverse(),
     fullData: normalizedRows.slice().reverse()
   }};
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// getAdminUsers — daftar nama user dengan Role = 'admin' di sheet "Users".
+// Dipakai frontend untuk mengisi opsi filter PIC (PIC = admin GA yang menangani permintaan).
+// ══════════════════════════════════════════════════════════════════════
+function getAdminUsers() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Users');
+  if (!sheet) return { success: false, message: 'Sheet "Users" belum dibuat', data: [] };
+
+  var data    = sheet.getDataRange().getValues();
+  if (data.length < 1) return { success: true, data: [] };
+  var headers = data[0];
+  var rows    = data.slice(1).map(function(row) {
+    var obj = {}; headers.forEach(function(h,i){ obj[h]=row[i]; }); return obj;
+  });
+
+  var admins = rows
+    .filter(function(u){ return String(u['Role']||'').trim().toLowerCase() === 'admin'; })
+    .map(function(u){ return String(u['Nama']||u['Username']||'').trim(); })
+    .filter(Boolean);
+
+  // Hilangkan duplikat & urutkan
+  var unique = Array.from(new Set(admins)).sort(function(a,b){ return a.localeCompare(b,'id'); });
+  return { success: true, data: unique };
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -3989,10 +4019,51 @@ function populatePeriodYearOptions(rows){
   if(sortedYears.includes(parseInt(currentVal,10)) || currentVal==='all') yearSel.value = currentVal;
 }
 
+// Nama-nama admin (Role='admin' di sheet Users) yang dipakai sebagai opsi filter PIC.
+// Diisi oleh loadAdminUsers() — lihat di bawah.
+let adminUserNames = [];
+
+// Isi dropdown filter PIC dengan daftar nama ADMIN (bukan dari isi bebas kolom PIC di data permintaan)
+function populatePeriodPicOptions(names){
+  const picSel = document.getElementById('period-pic-select');
+  if(!picSel) return;
+  const currentVal = picSel.value;
+  const sortedNames = Array.from(new Set((names||[]).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'id'));
+  picSel.innerHTML = '<option value="all">Semua PIC</option>' + sortedNames.map(p=>`<option value="${p.replace(/"/g,'&quot;')}">${p}</option>`).join('');
+  // Pertahankan pilihan sebelumnya kalau masih tersedia
+  if(sortedNames.includes(currentVal) || currentVal==='all') picSel.value = currentVal;
+}
+
+// Ambil daftar nama admin dari backend (sheet "Users", Role='admin') via JSONP,
+// lalu isi dropdown filter PIC. Fallback ke data demo kalau belum terhubung ke Sheets.
+function loadAdminUsers(){
+  const url = APPS_SCRIPT_URL;
+  if(!url || url.indexOf('script.google.com')===-1){
+    // Mode demo: tampilkan beberapa nama contoh supaya filter tetap bisa dicoba
+    adminUserNames = ['Andi Santoso','Siti Rahayu','Budi Prasetyo'];
+    populatePeriodPicOptions(adminUserNames);
+    return;
+  }
+  const scriptUrl = `${url}?action=getAdminUsers&callback=handleAdminUsers&_=${Date.now()}`;
+  const s = document.createElement('script');
+  s.src = scriptUrl;
+  s.onerror = ()=>{ s.remove(); };
+  document.head.appendChild(s);
+  setTimeout(()=>{ if(document.head.contains(s)) s.remove(); }, 8000);
+}
+window.handleAdminUsers = function(res){
+  if(res && res.success){
+    adminUserNames = res.data || [];
+    populatePeriodPicOptions(adminUserNames);
+  }
+  document.querySelectorAll('script[src*="getAdminUsers"]').forEach(s=>s.remove());
+};
+
 function applyPeriodFilter(rows){
   const month  = (document.getElementById('period-month-select')||{value:'all'}).value;
   const year   = (document.getElementById('period-year-select')||{value:'all'}).value;
   const status = (document.getElementById('period-status-select')||{value:'all'}).value;
+  const pic    = (document.getElementById('period-pic-select')||{value:'all'}).value;
 
   let out = rows;
   if(month!=='all' || year!=='all'){
@@ -4013,6 +4084,9 @@ function applyPeriodFilter(rows){
       return st===status; // 'Dalam Proses' / 'Menunggu' / 'Ditolak'
     });
   }
+  if(pic!=='all'){
+    out = out.filter(r=> (r['PIC']||'').trim()===pic);
+  }
   return out;
 }
 
@@ -4020,11 +4094,12 @@ function updatePeriodBadge(){
   const month  = (document.getElementById('period-month-select')||{value:'all'}).value;
   const year   = (document.getElementById('period-year-select')||{value:'all'}).value;
   const status = (document.getElementById('period-status-select')||{value:'all'}).value;
+  const pic    = (document.getElementById('period-pic-select')||{value:'all'}).value;
   const badge = document.getElementById('period-badge');
   if(!badge) return;
   const STATUS_LABEL = {selesai:'Selesai', belum:'Belum Selesai', 'Dalam Proses':'Dalam Proses', 'Menunggu':'Menunggu', 'Ditolak':'Ditolak'};
   const toggleText = document.getElementById('period-toggle-text');
-  if(month==='all' && year==='all' && status==='all'){
+  if(month==='all' && year==='all' && status==='all' && pic==='all'){
     badge.textContent = 'Menampilkan: Semua Periode';
     if(toggleText) toggleText.textContent = 'Semua Periode';
     return;
@@ -4032,7 +4107,8 @@ function updatePeriodBadge(){
   const monthLabel = month!=='all' ? MONTH_ID[parseInt(month,10)] : '';
   const yearLabel = year!=='all' ? year : '';
   const statusLabel = status!=='all' ? STATUS_LABEL[status] : '';
-  const shortLabel = [monthLabel,yearLabel,statusLabel].filter(Boolean).join(' · ') || 'Semua Periode';
+  const picLabel = pic!=='all' ? `PIC: ${pic}` : '';
+  const shortLabel = [monthLabel,yearLabel,statusLabel,picLabel].filter(Boolean).join(' · ') || 'Semua Periode';
   badge.textContent = `Menampilkan: ${shortLabel}`;
   if(toggleText) toggleText.textContent = shortLabel;
 }
@@ -4062,6 +4138,7 @@ function resetPeriodFilter(){
   document.getElementById('period-month-select').value = 'all';
   document.getElementById('period-year-select').value = 'all';
   document.getElementById('period-status-select').value = 'all';
+  document.getElementById('period-pic-select').value = 'all';
   onPeriodFilterChange();
 }
 
@@ -4120,6 +4197,7 @@ window.handleStats = function(res){
     setMasterData(filteredRows);
     renderStats(recomputeStatsFromRows(globalData));
     updateFooter(true);
+    loadAdminUsers(); // isi opsi filter PIC dengan nama-nama admin (sheet Users, Role='admin')
     startAutoSync(); // mulai polling lintas user/device setelah data awal berhasil dimuat
   }
   else { renderDemoData(); showToast('Error mengambil data','error'); updateFooter(false); }
@@ -5532,6 +5610,7 @@ function renderDemoData(){
   const filteredRows = filterRowsForUser(rows);
   setMasterData(filteredRows);
   renderStats(recomputeStatsFromRows(globalData));
+  loadAdminUsers(); // isi opsi filter PIC (mode demo: nama contoh)
   document.getElementById('last-sync').textContent=new Date().toLocaleTimeString('id-ID');
 }
 
