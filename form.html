@@ -519,15 +519,13 @@
 
           <div class="reimb-table-wrap">
             <label style="display:block;margin-bottom:8px;">List Pengajuan Perbaikan Sipil <span class="req">*</span></label>
-            <span class="err-msg" id="e-sipil-items">Minimal 1 rincian dengan area kerusakan, detail kerusakan, dan estimasi biaya</span>
+            <span class="err-msg" id="e-sipil-items">Minimal 1 rincian dengan area kerusakan dan detail kerusakan</span>
             <table class="reimb-table" id="sipil-table">
               <thead>
-                <tr><th style="width:32px;">No</th><th style="width:220px;">Area Kerusakan</th><th>Detail Lokasi</th><th>Detail Kerusakan</th><th style="width:150px;">Estimasi Biaya (Rp)</th><th style="width:36px;"></th></tr>
+                <tr><th style="width:32px;">No</th><th style="width:220px;">Area Kerusakan</th><th>Detail Lokasi</th><th>Detail Kerusakan</th><th style="width:36px;"></th></tr>
               </thead>
               <tbody id="sipil-tbody"></tbody>
-              <tfoot>
-                <tr><td colspan="4" style="text-align:right;font-weight:700;">TOTAL</td><td id="sipil-total" style="font-weight:700;color:var(--primary-light);">Rp 0</td><td></td></tr>
-              </tfoot>
+              <tfoot></tfoot>
             </table>
             <button type="button" class="btn-add-item" onclick="addSipilItem()"><i class="fas fa-plus"></i> Tambah Rincian</button>
           </div>
@@ -584,14 +582,14 @@
           <p style="color:#1d4ed8;">Rincian item/barang/jasa yang diajukan. Rincian ini akan tercetak pada Form Pengajuan setelah permintaan disetujui.</p>
 
           <div class="reimb-table-wrap">
-            <span class="err-msg" id="e-pj-items">Minimal 1 rincian pengajuan dengan item, qty, dan jumlah biaya</span>
+            <span class="err-msg" id="e-pj-items">Minimal 1 rincian pengajuan dengan item dan qty</span>
             <table class="reimb-table" id="pj-table">
               <thead>
-                <tr><th style="width:32px;">No</th><th>Item</th><th style="width:70px;">Qty</th><th style="width:110px;">Satuan</th><th style="width:150px;">Jumlah Biaya (Rp)</th><th style="width:36px;"></th></tr>
+                <tr><th style="width:32px;">No</th><th>Item</th><th style="width:70px;">Qty</th><th style="width:110px;">Satuan</th><th id="pj-th-biaya" style="width:150px;">Jumlah Biaya (Rp)</th><th style="width:36px;"></th></tr>
               </thead>
               <tbody id="pj-tbody"></tbody>
               <tfoot>
-                <tr><td colspan="2" style="text-align:right;font-weight:700;">TOTAL</td><td id="pj-total-qty" style="font-weight:700;"></td><td></td><td id="pj-total" style="font-weight:700;color:var(--primary-light);">Rp 0</td><td></td></tr>
+                <tr><td colspan="2" style="text-align:right;font-weight:700;">TOTAL</td><td id="pj-total-qty" style="font-weight:700;"></td><td></td><td id="pj-total-cell" style="font-weight:700;color:var(--primary-light);"><span id="pj-total">Rp 0</span></td><td></td></tr>
               </tfoot>
             </table>
             <button type="button" class="btn-add-item" onclick="addPengajuanItem()"><i class="fas fa-plus"></i> Tambah Rincian</button>
@@ -601,7 +599,7 @@
       <!-- ===== END SECTION LIST PENGAJUAN ===== -->
 
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" id="wrap-tanggal">
           <label for="f-tanggal">Tanggal Dibutuhkan <span class="req">*</span></label>
           <input type="date" id="f-tanggal">
           <span class="err-msg" id="e-tanggal">Tanggal wajib diisi</span>
@@ -906,10 +904,15 @@ document.getElementById('f-tanggal').addEventListener('change', syncTanggalSeles
 
 function validateStep3(){
   let ok=true;
+  const skipTanggal = formData.layanan === 'Reimburse Biaya' || formData.layanan === 'Perbaikan Sipil';
   const fields=[
     {id:'f-deskripsi',eid:'e-deskripsi',key:'deskripsi'},
-    {id:'f-tanggal',eid:'e-tanggal',key:'tanggal'},
   ];
+  if(!skipTanggal){
+    fields.push({id:'f-tanggal',eid:'e-tanggal',key:'tanggal'});
+  } else {
+    formData.tanggal = '';
+  }
   fields.forEach(f=>{
     const v=document.getElementById(f.id).value.trim();
     const err=document.getElementById(f.eid);
@@ -955,10 +958,9 @@ function validateStep3(){
     recalcReimburseTotal();
   } else if(formData.layanan === 'Perbaikan Sipil'){
     const sipilErr = document.getElementById('e-sipil-items');
-    const validSipilItems = formData.sipilItems.filter(it=>it.area && it.detail && it.biaya>0);
+    const validSipilItems = formData.sipilItems.filter(it=>it.area && it.detail);
     if(validSipilItems.length===0){ sipilErr.classList.add('show'); ok=false; }
     else{ sipilErr.classList.remove('show'); }
-    recalcSipilTotal();
   } else if(formData.layanan === 'Kendaraan'){
     const kendErr = document.getElementById('e-kendaraan-items');
     const validKendItems = formData.kendaraanItems.filter(it=>it.kendaraan && it.qty>0 && it.tanggalPemakaian && it.keperluan);
@@ -971,7 +973,7 @@ function validateStep3(){
     else{ rmErr.classList.remove('show'); }
   } else {
     const pjErr = document.getElementById('e-pj-items');
-    const validPjItems = formData.items.filter(it=>it.item && it.biaya>0);
+    const validPjItems = formData.items.filter(it=>it.item);
     if(validPjItems.length===0){ pjErr.classList.add('show'); ok=false; }
     else{ pjErr.classList.remove('show'); }
     recalcPengajuanTotal();
@@ -1020,10 +1022,24 @@ function toggleReimburseSection(){
   document.getElementById('ruangmeeting-section').style.display = isRuangMeeting ? 'block' : 'none';
   document.getElementById('pengajuan-section').style.display = isUmum ? 'block' : 'none';
 
-  // Kendaraan & Ruang Meeting tidak punya kolom Biaya di form aslinya → sembunyikan & nolkan
+  // Kendaraan, Ruang Meeting, & Perbaikan Sipil tidak punya kolom Total Biaya di form → sembunyikan & nolkan
   const biayaRow = document.getElementById('biaya-row');
-  if(biayaRow) biayaRow.style.display = (isKendaraan || isRuangMeeting) ? 'none' : '';
-  if(isKendaraan || isRuangMeeting) formData.biaya = 0;
+  if(biayaRow) biayaRow.style.display = (isKendaraan || isRuangMeeting || isSipil) ? 'none' : '';
+  if(isKendaraan || isRuangMeeting || isSipil) formData.biaya = 0;
+
+  // Reimburse Biaya & Perbaikan Sipil tidak memakai Tanggal Dibutuhkan & Lokasi/Tujuan → sembunyikan & kosongkan
+  const hideTanggalLokasi = isReimburse || isSipil;
+  const wrapTanggal = document.getElementById('wrap-tanggal');
+  const wrapLokasi = document.getElementById('wrap-lokasi');
+  if(wrapTanggal) wrapTanggal.style.display = hideTanggalLokasi ? 'none' : '';
+  if(wrapLokasi) wrapLokasi.style.display = hideTanggalLokasi ? 'none' : '';
+  if(hideTanggalLokasi){
+    document.getElementById('f-tanggal').value = '';
+    document.getElementById('f-lokasi').value = '';
+    formData.lokasi = '';
+    document.getElementById('e-tanggal').classList.remove('show');
+    document.getElementById('f-tanggal').classList.remove('err');
+  }
 
   if(isReimburse && formData.rbItems.length === 0){
     addReimburseItem();
@@ -1035,6 +1051,8 @@ function toggleReimburseSection(){
     addRuangMeetingItem();
   } else if(isUmum && formData.items.length === 0){
     addPengajuanItem();
+  } else if(isUmum){
+    renderPengajuanItems();
   }
 }
 
@@ -1056,16 +1074,21 @@ function updatePengajuanItem(idx, key, value){
 
 function renderPengajuanItems(){
   const tbody = document.getElementById('pj-tbody');
+  const showBiaya = formData.layanan === 'Reimburse Biaya';
   tbody.innerHTML = formData.items.map((item,i)=>`
     <tr>
       <td style="text-align:center;color:var(--muted);">${i+1}</td>
       <td><input type="text" placeholder="Nama item/barang/jasa" value="${item.item}" onchange="updatePengajuanItem(${i},'item',this.value)"></td>
       <td><input type="number" min="1" step="1" placeholder="1" value="${item.qty||''}" onchange="updatePengajuanItem(${i},'qty',this.value)"></td>
       <td><input type="text" placeholder="pak/unit/hari" value="${item.satuan||''}" onchange="updatePengajuanItem(${i},'satuan',this.value)"></td>
-      <td><input type="number" min="0" step="1000" placeholder="0" value="${item.biaya||''}" onchange="updatePengajuanItem(${i},'biaya',this.value)"></td>
+      <td style="${showBiaya?'':'display:none;'}"><input type="number" min="0" step="1000" placeholder="0" value="${item.biaya||''}" onchange="updatePengajuanItem(${i},'biaya',this.value)"></td>
       <td><button type="button" class="rb-remove" onclick="removePengajuanItem(${i})" title="Hapus rincian"><i class="fas fa-times"></i></button></td>
     </tr>
   `).join('');
+  const pjThBiaya = document.getElementById('pj-th-biaya');
+  const pjTotalCell = document.getElementById('pj-total-cell');
+  if(pjThBiaya) pjThBiaya.style.display = showBiaya ? '' : 'none';
+  if(pjTotalCell) pjTotalCell.style.display = showBiaya ? '' : 'none';
   recalcPengajuanTotal();
 }
 
@@ -1129,8 +1152,7 @@ function removeSipilItem(idx){
 }
 
 function updateSipilItem(idx, key, value){
-  formData.sipilItems[idx][key] = key==='biaya' ? (parseInt(value)||0) : value;
-  if(key==='biaya') recalcSipilTotal();
+  formData.sipilItems[idx][key] = value;
 }
 
 function renderSipilItems(){
@@ -1145,7 +1167,6 @@ function renderSipilItems(){
       </td>
       <td><input type="text" placeholder="Detail lokasi" value="${item.lokasi}" onchange="updateSipilItem(${i},'lokasi',this.value)"></td>
       <td><input type="text" placeholder="Detail kerusakan" value="${item.detail}" onchange="updateSipilItem(${i},'detail',this.value)"></td>
-      <td><input type="number" min="0" step="1000" placeholder="0" value="${item.biaya||''}" onchange="updateSipilItem(${i},'biaya',this.value)"></td>
       <td><button type="button" class="rb-remove" onclick="removeSipilItem(${i})" title="Hapus rincian"><i class="fas fa-times"></i></button></td>
     </tr>
   `).join('');
@@ -1156,15 +1177,6 @@ function renderSipilItems(){
     const sel = row && row.querySelector('select');
     if(sel) sel.value = item.area;
   });
-  recalcSipilTotal();
-}
-
-function recalcSipilTotal(){
-  const total = formData.sipilItems.reduce((s,it)=>s+(Number(it.biaya)||0),0);
-  document.getElementById('sipil-total').textContent = formatRpFull(total);
-  formData.biaya = total;
-  const biayaInput = document.getElementById('f-biaya');
-  if(formData.layanan === 'Perbaikan Sipil' && biayaInput) biayaInput.value = total;
 }
 
 // ── LIST PENGAJUAN KENDARAAN (sesuai Form_Kendaraan.xlsx) ──
@@ -1340,8 +1352,8 @@ function buildSummary(){
     <div class="sum-item"><label>Prioritas</label>
       <p><span style="color:${PRIOCOLOR[formData.prioritas]};font-weight:700;">● ${formData.prioritas}</span></p>
     </div>
-    <div class="sum-item"><label>Tanggal Dibutuhkan</label><p>${tanggalRangeFmt}</p></div>
-    <div class="sum-item"><label>Estimasi Biaya</label><p style="color:#92400e;font-weight:700;">${formatRpFull(formData.biaya)}</p></div>
+    ${(formData.layanan!=='Reimburse Biaya' && formData.layanan!=='Perbaikan Sipil')?`<div class="sum-item"><label>Tanggal Dibutuhkan</label><p>${tanggalRangeFmt}</p></div>`:''}
+    ${formData.layanan!=='Perbaikan Sipil'?`<div class="sum-item"><label>Estimasi Biaya</label><p style="color:#92400e;font-weight:700;">${formatRpFull(formData.biaya)}</p></div>`:''}
     <div class="sum-item full"><label>Deskripsi Kebutuhan</label><p>${formData.deskripsi}</p></div>
     ${formData.lokasi?`<div class="sum-item"><label for="f-lokasi">Lokasi / Tujuan</label><p>${formData.lokasi}</p></div>`:''}
     ${formData.catatan?`<div class="sum-item full"><label for="f-catatan">Catatan Tambahan</label><p>${formData.catatan}</p></div>`:''}
@@ -1352,13 +1364,13 @@ function buildSummary(){
     <div class="sum-item"><label>Nama Bank</label><p>${formData.rbBank}</p></div>
     <div class="sum-item full"><label>List Pengajuan Reimburse</label><p style="font-size:12px;">${formData.rbItems.filter(it=>it.tanggal&&it.deskripsi&&it.biaya>0).map(it=>`• ${it.tanggal} — ${it.deskripsi}${it.nota?' (Nota: '+it.nota+')':''}: ${formatRpFull(it.biaya)}`).join('<br>')}</p></div>
     `:formData.layanan==='Perbaikan Sipil'?`
-    <div class="sum-item full"><label>List Pengajuan Perbaikan Sipil</label><p style="font-size:12px;">${formData.sipilItems.filter(it=>it.area&&it.detail&&it.biaya>0).map(it=>`• ${it.area}${it.lokasi?' — '+it.lokasi:''}: ${it.detail} — ${formatRpFull(it.biaya)}`).join('<br>')}</p></div>
+    <div class="sum-item full"><label>List Pengajuan Perbaikan Sipil</label><p style="font-size:12px;">${formData.sipilItems.filter(it=>it.area&&it.detail).map(it=>`• ${it.area}${it.lokasi?' — '+it.lokasi:''}: ${it.detail}`).join('<br>')}</p></div>
     `:formData.layanan==='Kendaraan'?`
     <div class="sum-item full"><label>List Pengajuan Kendaraan</label><p style="font-size:12px;">${formData.kendaraanItems.filter(it=>it.kendaraan&&it.qty>0&&it.tanggalPemakaian&&it.keperluan).map(it=>`• ${it.kendaraan} (Qty: ${it.qty}${it.satuan?' '+it.satuan:''}) — ${it.tanggalPemakaian} — ${it.keperluan}`).join('<br>')}</p></div>
     `:formData.layanan==='Ruang Meeting'?`
     <div class="sum-item full"><label>List Pengajuan Ruang Meeting</label><p style="font-size:12px;">${formData.ruangMeetingItems.filter(it=>it.ruang&&it.agenda&&it.tanggal&&it.jam&&it.peserta>0).map(it=>`• ${it.ruang} — ${it.agenda} — ${it.tanggal} ${it.jam} (${it.peserta} peserta)`).join('<br>')}</p></div>
     `:`
-    <div class="sum-item full"><label>List Pengajuan</label><p style="font-size:12px;">${formData.items.filter(it=>it.item&&it.biaya>0).map(it=>`• ${it.item} (Qty: ${it.qty||1}${it.satuan?' '+it.satuan:''}): ${formatRpFull(it.biaya)}`).join('<br>')}</p></div>
+    <div class="sum-item full"><label>List Pengajuan</label><p style="font-size:12px;">${formData.items.filter(it=>it.item).map(it=>`• ${it.item} (Qty: ${it.qty||1}${it.satuan?' '+it.satuan:''})`).join('<br>')}</p></div>
     `}
   `;
 }
@@ -1404,11 +1416,11 @@ function getItemsAndBiayaForDate(dateStr){
     return { items, biaya: formData.biaya || 0 };
   }
   if(GENERIC_PENGAJUAN_LAYANAN.includes(layanan)){
-    const items = formData.items.filter(it=>it.item && it.biaya>0);
+    const items = formData.items.filter(it=>it.item);
     return { items, biaya: items.reduce((s,it)=>s+(Number(it.biaya)||0),0) };
   }
   if(layanan === 'Perbaikan Sipil'){
-    const items = formData.sipilItems.filter(it=>it.area && it.detail && it.biaya>0);
+    const items = formData.sipilItems.filter(it=>it.area && it.detail);
     return { items, biaya: items.reduce((s,it)=>s+(Number(it.biaya)||0),0) };
   }
   return { items: [], biaya: formData.biaya || 0 };
@@ -1603,7 +1615,6 @@ function resetForm(){
   document.getElementById('reimb-total').textContent='Rp 0';
   document.getElementById('reimburse-section').style.display='none';
   document.getElementById('sipil-tbody').innerHTML='';
-  document.getElementById('sipil-total').textContent='Rp 0';
   document.getElementById('sipil-section').style.display='none';
   document.getElementById('kendaraan-tbody').innerHTML='';
   document.getElementById('kendaraan-section').style.display='none';
