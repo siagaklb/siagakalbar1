@@ -321,6 +321,7 @@
         <div class="form-group">
           <label for="f-nama">Nama Lengkap <span class="req">*</span></label>
           <input type="text" id="f-nama" placeholder="Masukkan nama lengkap">
+          <span class="hint" id="f-nama-hint" style="display:none;"><i class="fas fa-lock" style="margin-right:4px;"></i>Terisi otomatis sesuai akun yang login</span>
           <span class="err-msg" id="e-nama">Nama wajib diisi</span>
         </div>
         <div class="form-group">
@@ -1634,6 +1635,7 @@ function resetForm(){
     const el=document.getElementById(id);
     if(el) el.value='';
   });
+  autoFillNamaFromLogin();
   document.getElementById('f-biaya-hint').textContent='Otomatis dihitung dari List Pengajuan di atas';
   document.querySelectorAll('.bidang-pick,.svc-pick').forEach(e=>e.classList.remove('sel'));
   document.querySelectorAll('.prio-pick').forEach(e=>e.classList.remove('sel-tinggi','sel-sedang','sel-rendah'));
@@ -1642,6 +1644,34 @@ function resetForm(){
 
 // Set min date = today
 document.getElementById('f-tanggal').min = new Date().toISOString().split('T')[0];
+
+// ── Auto-isi Nama Lengkap dari akun yang sedang login (kolom "Nama" di sheet Users) ──
+// Form ini bisa dibuka dalam 2 konteks:
+//  1) Di dalam dashboard (iframe) setelah user login → sessionStorage.auth_user tersedia,
+//     karena dashboard & form.html berjalan pada origin yang sama.
+//  2) Sebagai form publik mandiri (dibuka langsung, tanpa login) → auth_user tidak ada,
+//     nama tetap diisi manual seperti semula.
+// Field dikunci (readonly) saat auto-terisi supaya pemohon tidak salah ketik nama sendiri.
+function autoFillNamaFromLogin(){
+  let authUser = null;
+  try{
+    const raw = sessionStorage.getItem('auth_user');
+    if(raw) authUser = JSON.parse(raw);
+  }catch(err){ authUser = null; }
+
+  if(authUser && authUser.nama){
+    const namaInput = document.getElementById('f-nama');
+    const namaHint = document.getElementById('f-nama-hint');
+    namaInput.value = authUser.nama;
+    namaInput.readOnly = true;
+    namaInput.style.background = '#f8fafc';
+    namaInput.style.color = 'var(--muted)';
+    namaInput.style.fontWeight = '700';
+    if(namaHint) namaHint.style.display = 'block';
+    formData.nama = authUser.nama;
+  }
+}
+autoFillNamaFromLogin();
 </script>
 </body>
 </html>
