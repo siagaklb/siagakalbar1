@@ -462,9 +462,18 @@
 
       <div class="form-row single">
         <div class="form-group">
-          <label for="f-deskripsi">Deskripsi Kebutuhan <span class="req">*</span></label>
+          <label for="f-deskripsi" id="label-deskripsi">Deskripsi <span class="req">*</span></label>
           <textarea id="f-deskripsi" placeholder="Jelaskan secara detail kebutuhan Anda, termasuk spesifikasi, jumlah, atau keterangan lainnya..."></textarea>
           <span class="err-msg" id="e-deskripsi">Deskripsi wajib diisi</span>
+        </div>
+      </div>
+
+      <!-- ===== FIELD KHUSUS: KONSUMSI KHUSUS ===== -->
+      <div class="form-row single" id="wrap-manpower" style="display:none;">
+        <div class="form-group">
+          <label for="f-manpower">Jumlah Manpower <span class="req">*</span></label>
+          <input type="number" id="f-manpower" min="1" step="1" placeholder="Contoh: 10">
+          <span class="err-msg" id="e-manpower">Jumlah manpower wajib diisi</span>
         </div>
       </div>
 
@@ -906,6 +915,7 @@ document.getElementById('f-tanggal').addEventListener('change', syncTanggalSeles
 function validateStep3(){
   let ok=true;
   const skipTanggal = formData.layanan === 'Reimburse Biaya' || formData.layanan === 'Perbaikan Sipil';
+  const isKonsumsiKhusus = formData.layanan === 'Konsumsi Khusus';
   const fields=[
     {id:'f-deskripsi',eid:'e-deskripsi',key:'deskripsi'},
   ];
@@ -913,6 +923,9 @@ function validateStep3(){
     fields.push({id:'f-tanggal',eid:'e-tanggal',key:'tanggal'});
   } else {
     formData.tanggal = '';
+  }
+  if(isKonsumsiKhusus){
+    fields.push({id:'f-manpower',eid:'e-manpower',key:'manpower'});
   }
   fields.forEach(f=>{
     const v=document.getElementById(f.id).value.trim();
@@ -1015,6 +1028,7 @@ function toggleReimburseSection(){
   const isSipil = formData.layanan === 'Perbaikan Sipil';
   const isKendaraan = formData.layanan === 'Kendaraan';
   const isRuangMeeting = formData.layanan === 'Ruang Meeting';
+  const isKonsumsiKhusus = formData.layanan === 'Konsumsi Khusus';
   const isUmum = !isReimburse && !isSipil && !isKendaraan && !isRuangMeeting;
 
   document.getElementById('reimburse-section').style.display = isReimburse ? 'block' : 'none';
@@ -1022,6 +1036,22 @@ function toggleReimburseSection(){
   document.getElementById('kendaraan-section').style.display = isKendaraan ? 'block' : 'none';
   document.getElementById('ruangmeeting-section').style.display = isRuangMeeting ? 'block' : 'none';
   document.getElementById('pengajuan-section').style.display = isUmum ? 'block' : 'none';
+
+  // Label field Deskripsi: "Deskripsi Pekerjaan" khusus Konsumsi Khusus, "Deskripsi" untuk layanan lain
+  const labelDeskripsi = document.getElementById('label-deskripsi');
+  if(labelDeskripsi){
+    labelDeskripsi.innerHTML = (isKonsumsiKhusus ? 'Deskripsi Pekerjaan' : 'Deskripsi') + ' <span class="req">*</span>';
+  }
+
+  // Jumlah Manpower: field khusus layanan Konsumsi Khusus, tampil di bawah Deskripsi Pekerjaan
+  const wrapManpower = document.getElementById('wrap-manpower');
+  if(wrapManpower) wrapManpower.style.display = isKonsumsiKhusus ? 'block' : 'none';
+  if(!isKonsumsiKhusus){
+    document.getElementById('f-manpower').value = '';
+    formData.manpower = '';
+    document.getElementById('e-manpower').classList.remove('show');
+    document.getElementById('f-manpower').classList.remove('err');
+  }
 
   // Kendaraan, Ruang Meeting, & Perbaikan Sipil tidak punya kolom Total Biaya di form → sembunyikan & nolkan
   const biayaRow = document.getElementById('biaya-row');
@@ -1355,7 +1385,8 @@ function buildSummary(){
     </div>
     ${(formData.layanan!=='Reimburse Biaya' && formData.layanan!=='Perbaikan Sipil')?`<div class="sum-item"><label>Tanggal Dibutuhkan</label><p>${tanggalRangeFmt}</p></div>`:''}
     ${formData.layanan!=='Perbaikan Sipil'?`<div class="sum-item"><label>Estimasi Biaya</label><p style="color:#92400e;font-weight:700;">${formatRpFull(formData.biaya)}</p></div>`:''}
-    <div class="sum-item full"><label>Deskripsi Kebutuhan</label><p>${formData.deskripsi}</p></div>
+    <div class="sum-item full"><label>${formData.layanan==='Konsumsi Khusus'?'Deskripsi Pekerjaan':'Deskripsi'}</label><p>${formData.deskripsi}</p></div>
+    ${formData.layanan==='Konsumsi Khusus'?`<div class="sum-item"><label>Jumlah Manpower</label><p>${formData.manpower||'–'} orang</p></div>`:''}
     ${formData.lokasi?`<div class="sum-item"><label for="f-lokasi">Lokasi / Tujuan</label><p>${formData.lokasi}</p></div>`:''}
     ${formData.catatan?`<div class="sum-item full"><label for="f-catatan">Catatan Tambahan</label><p>${formData.catatan}</p></div>`:''}
     ${formData.files.length?`<div class="sum-item full"><label><i class="fas fa-paperclip" style="margin-right:4px;color:var(--primary-light);"></i>Lampiran (${formData.files.length} file)</label><p style="font-size:12px;">${formData.files.map(f=>'📎 '+f.name).join('<br>')}</p></div>`:''}
@@ -1465,6 +1496,7 @@ function buildRowPayload(dateStr, opts){
       'Prioritas': formData.prioritas,
       'Biaya': biayaHariIni || 0,
       'Deskripsi': deskripsiLengkap,
+      'Jumlah Manpower': formData.layanan === 'Konsumsi Khusus' ? (formData.manpower || '') : '',
       'Telepon': formData.telepon,
       'Email': formData.email || '',
       'Tanggal Dibutuhkan': tglFmt,
@@ -1631,7 +1663,7 @@ function resetForm(){
   document.getElementById('btn-submit').disabled=false;
   document.getElementById('btn-submit').innerHTML='<i class="fas fa-paper-plane"></i> Kirim Permintaan';
   document.getElementById('f-confirm').checked=false;
-  ['f-nama','f-nip','f-telepon','f-email','f-deskripsi','f-tanggal','f-lokasi','f-biaya','f-catatan'].forEach(id=>{
+  ['f-nama','f-nip','f-telepon','f-email','f-deskripsi','f-tanggal','f-lokasi','f-biaya','f-catatan','f-manpower'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
@@ -1671,7 +1703,29 @@ function autoFillNamaFromLogin(){
     formData.nama = authUser.nama;
   }
 }
+// ── Batasi pilihan Jenis Layanan untuk role Pegawai (sinkron dengan dashboard.html) ──
+// Role 'pegawai' hanya boleh mengajukan: Konsumsi Kegiatan, ATK, Kendaraan, Ruang Meeting,
+// Fasilitas Kerja, Reimburse Biaya, Perbaikan Sipil. 'Konsumsi Khusus' disembunyikan dari pilihan.
+const PEGAWAI_ALLOWED_LAYANAN = ['Konsumsi Kegiatan', 'ATK', 'Kendaraan', 'Ruang Meeting', 'Fasilitas Kerja', 'Reimburse Biaya', 'Perbaikan Sipil'];
+function applyPegawaiLayananRestriction(){
+  let authUser = null;
+  try{
+    const raw = sessionStorage.getItem('auth_user');
+    if(raw) authUser = JSON.parse(raw);
+  }catch(err){ authUser = null; }
+
+  const role = (authUser && authUser.role || '').toString().toLowerCase();
+  if(role !== 'pegawai') return;
+
+  document.querySelectorAll('.svc-pick').forEach(el=>{
+    const val = el.dataset.val;
+    if(PEGAWAI_ALLOWED_LAYANAN.indexOf(val) === -1){
+      el.style.display = 'none';
+    }
+  });
+}
 autoFillNamaFromLogin();
+applyPegawaiLayananRestriction();
 </script>
 </body>
 </html>
