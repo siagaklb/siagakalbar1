@@ -1467,7 +1467,7 @@ function logout(){
         </div>
         <div class="table-scroll"><table class="req-table">
           <thead>
-            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
+            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Tgl Selesai</th><th>PIC</th><th>Status</th><th>Aksi</th></tr>
           </thead>
           <tbody id="req-tbody"></tbody>
         </table></div>
@@ -1520,7 +1520,7 @@ function logout(){
         </div>
         <div class="table-scroll"><table class="req-table">
           <thead>
-            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
+            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Tgl Selesai</th><th>PIC</th><th>Status</th><th>Aksi</th></tr>
           </thead>
           <tbody id="layanan-tbody"></tbody>
         </table></div>
@@ -1588,7 +1588,7 @@ function logout(){
         </div>
         <div class="table-scroll"><table class="req-table">
           <thead>
-            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Status</th><th>Tgl Selesai</th><th>PIC</th><th>Aksi</th></tr>
+            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Prioritas</th><th>Biaya</th><th>Tgl Dibuat</th><th>Tgl Dibutuhkan</th><th>Tgl Selesai</th><th>PIC</th><th>Status</th><th>Aksi</th></tr>
           </thead>
           <tbody id="bidang-tbody"></tbody>
         </table></div>
@@ -2414,7 +2414,7 @@ function processAddRow(payload) {
 
   var requiredCols = [
     'ID','Jenis Layanan','Bidang','Nama Pemohon','NIP',
-    'Status','Prioritas','Biaya','Deskripsi','Telepon','Email',
+    'Status','Prioritas','Biaya','Deskripsi','Jumlah Manpower','Telepon','Email',
     'Tanggal Dibutuhkan','Tanggal Selesai','PIC',
     'Lampiran','Dibuat','Timestamp',
     'Review Supervisor Administrasi','Review Supervisor Senior Administrasi','Approval Manager Administrasi'
@@ -2571,17 +2571,35 @@ function deleteAllSheetsExceptDataAndUsers() {
 //   - Reimburse Biaya & Perbaikan Sipil pakai skema KHUSUS masing-masing.
 // ══════════════════════════════════════════════════════════════════════
 
-// Skema generik dipakai oleh 6 layanan berbasis "Pengajuan Items"
+// Skema generik dipakai oleh 5 layanan berbasis "Pengajuan Items"
+// (Konsumsi Kegiatan, ATK, Fasilitas Kerja, Ruang Meeting*, Kendaraan* — *skema sendiri, lihat di bawah)
 var GENERIC_ITEM_HEADERS = [
   'ID Pengajuan', 'Nama Pemohon', 'Bidang', 'Jenis Layanan',
-  'Nama Item', 'Qty', 'Satuan', 'Biaya',
+  'Nama Item', 'Qty', 'Satuan', 'Biaya', 'Deskripsi',
   'Tanggal Dibuat', 'Tanggal Dibutuhkan', 'Tanggal Selesai',
   'Status', 'Update Terakhir', 'Lampiran', 'Keterangan'
 ];
 function genericBuildRow(it, ctx, reqId) {
   return [
     reqId, ctx.namaPemohon, ctx.bidang, ctx.jenis,
-    it.item || '', it.qty || '', it.satuan || '', it.biaya || 0,
+    it.item || '', it.qty || '', it.satuan || '', it.biaya || 0, ctx.deskripsi,
+    ctx.tglDibuat, ctx.tglDibutuhkan, ctx.tglSelesai,
+    ctx.status, ctx.now, ctx.lampiran, ''
+  ];
+}
+
+// Skema khusus Konsumsi Khusus: sama seperti skema generik, ditambah
+// kolom 'Jumlah Manpower' tepat setelah kolom 'Deskripsi'.
+var KONSUMSI_KHUSUS_ITEM_HEADERS = [
+  'ID Pengajuan', 'Nama Pemohon', 'Bidang', 'Jenis Layanan',
+  'Nama Item', 'Qty', 'Satuan', 'Biaya', 'Deskripsi', 'Jumlah Manpower',
+  'Tanggal Dibuat', 'Tanggal Dibutuhkan', 'Tanggal Selesai',
+  'Status', 'Update Terakhir', 'Lampiran', 'Keterangan'
+];
+function konsumsiKhususBuildRow(it, ctx, reqId) {
+  return [
+    reqId, ctx.namaPemohon, ctx.bidang, ctx.jenis,
+    it.item || '', it.qty || '', it.satuan || '', it.biaya || 0, ctx.deskripsi, ctx.manpower || '',
     ctx.tglDibuat, ctx.tglDibutuhkan, ctx.tglSelesai,
     ctx.status, ctx.now, ctx.lampiran, ''
   ];
@@ -2591,8 +2609,8 @@ var LAYANAN_DETAIL_CONFIG = {
   'Konsumsi Khusus': {
     sheetName: 'Konsumsi Khusus',
     itemField: 'Pengajuan Items',
-    headers  : GENERIC_ITEM_HEADERS,
-    buildRow : genericBuildRow
+    headers  : KONSUMSI_KHUSUS_ITEM_HEADERS,
+    buildRow : konsumsiKhususBuildRow
   },
   'Konsumsi Kegiatan': {
     sheetName: 'Konsumsi Kegiatan',
@@ -2618,13 +2636,13 @@ var LAYANAN_DETAIL_CONFIG = {
     itemField: 'Ruang Meeting Items',
     headers  : [
       'ID Pengajuan', 'Nama Pemohon', 'Bidang', 'Jenis Layanan',
-      'Ruang Meeting', 'Agenda Kegiatan', 'Tanggal', 'Jam', 'Jumlah Peserta',
+      'Ruang Meeting', 'Agenda Kegiatan', 'Tanggal', 'Jam', 'Jumlah Peserta', 'Deskripsi',
       'Status', 'Update Terakhir', 'Lampiran', 'Keterangan'
     ],
     buildRow : function(it, ctx, reqId) {
       return [
         reqId, ctx.namaPemohon, ctx.bidang, ctx.jenis,
-        it.ruang || '', it.agenda || '', it.tanggal || '', it.jam || '', it.peserta || '',
+        it.ruang || '', it.agenda || '', it.tanggal || '', it.jam || '', it.peserta || '', ctx.deskripsi,
         ctx.status, ctx.now, ctx.lampiran, ''
       ];
     }
@@ -2636,14 +2654,14 @@ var LAYANAN_DETAIL_CONFIG = {
     itemField: 'Kendaraan Items',
     headers  : [
       'ID Pengajuan', 'Nama Pemohon', 'Bidang', 'Jenis Layanan',
-      'Kendaraan', 'Qty', 'Satuan', 'Tanggal Pemakaian', 'Keperluan',
+      'Kendaraan', 'Qty', 'Satuan', 'Tanggal Pemakaian', 'Keperluan', 'Deskripsi',
       'Tanggal Dibuat', 'Tanggal Dibutuhkan', 'Tanggal Selesai',
       'Status', 'Update Terakhir', 'Lampiran', 'Keterangan'
     ],
     buildRow : function(it, ctx, reqId) {
       return [
         reqId, ctx.namaPemohon, ctx.bidang, ctx.jenis,
-        it.kendaraan || '', it.qty || '', it.satuan || '', it.tanggalPemakaian || '', it.keperluan || '',
+        it.kendaraan || '', it.qty || '', it.satuan || '', it.tanggalPemakaian || '', it.keperluan || '', ctx.deskripsi,
         ctx.tglDibuat, ctx.tglDibutuhkan, ctx.tglSelesai,
         ctx.status, ctx.now, ctx.lampiran, ''
       ];
@@ -2719,6 +2737,45 @@ function setupAllLayananDetailSheets() {
 }
 
 // ══════════════════════════════════════════════════════════════════════
+// migrateLayananDetailHeaders — jalankan SEKALI SAJA secara manual dari
+// editor Apps Script setelah skema LAYANAN_DETAIL_CONFIG diperbarui
+// (mis. penambahan kolom 'Deskripsi' / 'Jumlah Manpower'). Menambahkan
+// kolom BARU yang belum ada ke sheet detail yang SUDAH ADA, tanpa
+// menghapus/mengubah kolom atau data lama. Setelah dijalankan, disarankan
+// menjalankan backfillLayananSheets() agar baris lama ikut terisi nilai
+// kolom barunya (kolom baru pada baris lama akan tetap kosong sampai
+// backfill dijalankan, karena data lama tidak otomatis diketahui nilainya).
+// Aman dijalankan berkali-kali.
+// ══════════════════════════════════════════════════════════════════════
+function migrateLayananDetailHeaders() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(LAYANAN_DETAIL_CONFIG).forEach(function(jenis) {
+    var cfg = LAYANAN_DETAIL_CONFIG[jenis];
+    var sheet = ss.getSheetByName(cfg.sheetName);
+    if (!sheet) {
+      Logger.log('· Sheet belum ada, dilewati (jalankan setupAllLayananDetailSheets dulu): ' + cfg.sheetName);
+      return;
+    }
+    var lastCol = sheet.getLastColumn();
+    var existingHeaders = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+    var added = [];
+    cfg.headers.forEach(function(col) {
+      if (existingHeaders.indexOf(col) === -1) {
+        sheet.getRange(1, existingHeaders.length + 1).setValue(col);
+        existingHeaders.push(col);
+        added.push(col);
+      }
+    });
+    if (added.length > 0) {
+      Logger.log('✅ Kolom baru ditambahkan ke ' + cfg.sheetName + ': ' + added.join(', '));
+    } else {
+      Logger.log('· ' + cfg.sheetName + ' sudah lengkap, tidak ada kolom baru.');
+    }
+  });
+  Logger.log('Migrasi header sheet detail selesai. Jalankan backfillLayananSheets() untuk mengisi nilai kolom baru pada baris lama.');
+}
+
+// ══════════════════════════════════════════════════════════════════════
 // syncItemDetailSheets — pecah rincian item pada satu baris sheet "Data"
 // ke sheet detail sesuai Jenis Layanan-nya (lihat LAYANAN_DETAIL_CONFIG).
 // Dipanggil dari processAddRow & processUpdateRow.
@@ -2737,6 +2794,7 @@ function syncItemDetailSheets(headers, rowValues) {
   var bidangIdx       = headers.indexOf('Bidang');
   var statusIdx        = headers.indexOf('Status');
   var deskripsiIdx       = headers.indexOf('Deskripsi');
+  var manpowerIdx           = headers.indexOf('Jumlah Manpower');
   var dibuatIdx             = headers.indexOf('Dibuat');
   var tglButuhIdx              = headers.indexOf('Tanggal Dibutuhkan');
   var tglSelesaiIdx               = headers.indexOf('Tanggal Selesai');
@@ -2752,6 +2810,7 @@ function syncItemDetailSheets(headers, rowValues) {
     jenis        : jenis,
     status       : statusIdx     !== -1 ? rowValues[statusIdx]     : '',
     deskripsi    : deskripsiIdx  !== -1 ? rowValues[deskripsiIdx]  : '',
+    manpower     : manpowerIdx   !== -1 ? rowValues[manpowerIdx]   : '',
     tglDibuat    : dibuatIdx     !== -1 ? rowValues[dibuatIdx]     : '',
     tglDibutuhkan: tglButuhIdx   !== -1 ? rowValues[tglButuhIdx]   : '',
     tglSelesai   : tglSelesaiIdx !== -1 ? rowValues[tglSelesaiIdx] : '',
@@ -3565,7 +3624,12 @@ function visibleBidangConfig(){
 // Role 'bidang' (user departemen biasa) tidak boleh melihat atau mengakses
 // layanan "Reimburse Biaya" sama sekali — tidak di grid/kartu, tidak di sidebar,
 // tidak di dropdown pembuatan permintaan.
+// Role 'pegawai' hanya boleh melihat layanan pada PEGAWAI_ALLOWED_LAYANAN
+// (tidak termasuk 'Konsumsi Khusus') — berlaku juga untuk grid/kartu & chart layanan.
 function visibleSvcConfig(){
+  if(isPegawai()){
+    return SVC_CONFIG.filter(c => PEGAWAI_ALLOWED_LAYANAN.indexOf(c.key) !== -1);
+  }
   if(getUserRole() === 'bidang'){
     return SVC_CONFIG.filter(c => c.key !== 'Reimburse Biaya');
   }
@@ -3879,16 +3943,18 @@ function loadData() {
     updateFooter(false);
     return;
   }
-  // Tambahkan parameter anti-cache (_=timestamp) supaya browser TIDAK menyajikan
-  // respons JSONP lama dari cache — tanpa ini, perubahan yang baru disimpan ke
-  // Sheets (mis. edit kolom Biaya) bisa tampak "hilang"/tidak tersimpan saat
-  // dashboard reload, padahal datanya sudah benar di Google Sheets.
-  const scriptUrl = `${url}?action=getStats&callback=handleStats&_=${Date.now()}`;
-  const s = document.createElement('script');
-  s.src = scriptUrl;
-  s.onerror = ()=>{ renderDemoData(); hideLoading(); showToast('Gagal memuat data — tampil mode demo','error'); s.remove(); updateFooter(false); };
-  document.head.appendChild(s);
-  setTimeout(()=>{ if(document.head.contains(s)){ s.remove(); renderDemoData(); hideLoading(); showToast('Timeout — tampil mode demo','error'); updateFooter(false); }},8000);
+  // [FIX] Baca data lewat POST (bukan GET/JSONP) — lihat catatan panjang di
+  // postToAppsScript & handler action:'getStats' pada doPost (Code.gs). GET/JSONP
+  // rawan di-cache agresif oleh sebagian proxy/jaringan (mis. jaringan korporat),
+  // membuat perubahan yang sudah tersimpan di Google Sheets (baik dari aplikasi
+  // maupun diedit manual) tidak pernah terlihat oleh dashboard walau sudah lama
+  // menunggu. POST tidak mengalami masalah caching yang sama.
+  postToAppsScript({ action: 'getStats' })
+    .then(res => { handleStats(res); })
+    .catch(err => {
+      console.error('loadData gagal:', err);
+      renderDemoData(); hideLoading(); showToast('Gagal memuat data — tampil mode demo','error'); updateFooter(false);
+    });
 }
 
 // ── FILTER PER BIDANG (LOGIN) ──
@@ -3934,8 +4000,9 @@ function isManagerAdmin(){ return isSuperAdmin() || getUserRole()==='manager'; }
 
 // ── ROLE PEGAWAI ──
 // Role 'pegawai' hanya dapat melihat layanan tertentu saja (read-only terbatas).
-// Layanan yang diizinkan: Reimburse Biaya, ATK, Kendaraan, Ruang Meeting, Perbaikan Sipil.
-const PEGAWAI_ALLOWED_LAYANAN = ['Reimburse Biaya', 'ATK', 'Kendaraan', 'Ruang Meeting', 'Perbaikan Sipil'];
+// Layanan yang diizinkan: Konsumsi Kegiatan, ATK, Kendaraan, Ruang Meeting,
+// Fasilitas Kerja, Reimburse Biaya, Perbaikan Sipil. 'Konsumsi Khusus' TIDAK diizinkan.
+const PEGAWAI_ALLOWED_LAYANAN = ['Konsumsi Kegiatan', 'ATK', 'Kendaraan', 'Ruang Meeting', 'Fasilitas Kerja', 'Reimburse Biaya', 'Perbaikan Sipil'];
 function isPegawai(){ return getUserRole() === 'pegawai'; }
 
 function filterRowsForUser(rows){
@@ -4074,6 +4141,8 @@ function populatePeriodPicOptions(names){
 
 // Ambil daftar nama admin dari backend (sheet "Users", Role='admin') via JSONP,
 // lalu isi dropdown filter PIC. Fallback ke data demo kalau belum terhubung ke Sheets.
+// [FIX] Sebelumnya via GET/JSONP — rawan kena masalah caching yang sama seperti
+// loadData/loadDataSilent (lihat catatan panjang di loadDataSilent). Sekarang POST.
 function loadAdminUsers(){
   const url = APPS_SCRIPT_URL;
   if(!url || url.indexOf('script.google.com')===-1){
@@ -4082,20 +4151,72 @@ function loadAdminUsers(){
     populatePeriodPicOptions(adminUserNames);
     return;
   }
-  const scriptUrl = `${url}?action=getAdminUsers&callback=handleAdminUsers&_=${Date.now()}`;
-  const s = document.createElement('script');
-  s.src = scriptUrl;
-  s.onerror = ()=>{ s.remove(); };
-  document.head.appendChild(s);
-  setTimeout(()=>{ if(document.head.contains(s)) s.remove(); }, 8000);
+  postToAppsScript({ action: 'getAdminUsers' })
+    .then(res => {
+      if(res && res.success){
+        adminUserNames = res.data || [];
+        populatePeriodPicOptions(adminUserNames);
+      }
+    })
+    .catch(()=>{ /* biarkan filter PIC kosong kalau gagal, tidak fatal */ });
 }
-window.handleAdminUsers = function(res){
-  if(res && res.success){
-    adminUserNames = res.data || [];
-    populatePeriodPicOptions(adminUserNames);
+
+// ── loadPicNotifList — ambil seluruh isi sheet "PIC_Notif" (Jenis Layanan, Nama PIC,
+// No. WA PIC) untuk mengisi dropdown pemilihan PIC pada form isi/edit permintaan.
+// Dipanggil sekali saat dashboard dimuat (lihat handleStats), hasilnya disimpan di
+// picNotifList (array of {jenisLayanan, nama, nomor}) supaya bisa dipakai berulang
+// oleh renderPicDropdownOptions() tanpa perlu fetch ulang setiap kali dropdown dibuka.
+let picNotifList = [];
+function loadPicNotifList(){
+  const url = APPS_SCRIPT_URL;
+  if(!url || url.indexOf('script.google.com')===-1){
+    picNotifList = []; // mode demo: dropdown PIC kosong, field tetap bisa diisi manual (lihat renderPicDropdownOptions)
+    return;
   }
-  document.querySelectorAll('script[src*="getAdminUsers"]').forEach(s=>s.remove());
-};
+  postToAppsScript({ action: 'getPicNotif' })
+    .then(res => {
+      if(res && res.success){
+        picNotifList = res.data || [];
+      }
+    })
+    .catch(()=>{ /* dropdown PIC tetap fallback ke input manual kalau gagal, tidak fatal */ });
+}
+
+// ── renderPicDropdownOptions — bangun daftar <option> untuk dropdown PIC.
+// PIC yang terdaftar untuk jenisLayanan baris ini ditampilkan lebih dulu
+// (dikelompokkan via <optgroup>), diikuti PIC lain sebagai cadangan.
+// selectedValue (nilai PIC yang sudah tersimpan di baris) SELALU muncul
+// sebagai opsi terpilih walau namanya tidak/belum ada di sheet PIC_Notif,
+// supaya data lama tidak pernah hilang hanya karena tidak terdaftar di dropdown.
+function renderPicDropdownOptions(selectedValue, jenisLayanan){
+  const esc = (s)=> String(s||'').replace(/"/g,'&quot;');
+  const sel = (val)=> val === (selectedValue||'') ? 'selected' : '';
+
+  const relevan = picNotifList.filter(p => p.jenisLayanan === jenisLayanan);
+  const lainnya = picNotifList.filter(p => p.jenisLayanan !== jenisLayanan);
+  const namaTerdaftar = new Set(picNotifList.map(p => p.nama));
+
+  let html = `<option value="" ${sel('')}>(Kosongkan)</option>`;
+
+  // Nilai PIC lama yang sudah tersimpan tapi sudah tidak ada di sheet PIC_Notif —
+  // tetap ditampilkan sebagai opsi terpilih supaya tidak hilang dari tampilan.
+  if(selectedValue && !namaTerdaftar.has(selectedValue)){
+    html += `<option value="${esc(selectedValue)}" selected>${esc(selectedValue)} (tidak terdaftar)</option>`;
+  }
+
+  if(relevan.length){
+    html += `<optgroup label="PIC ${esc(jenisLayanan)}">`;
+    html += relevan.map(p => `<option value="${esc(p.nama)}" ${sel(p.nama)}>${esc(p.nama)}</option>`).join('');
+    html += `</optgroup>`;
+  }
+  if(lainnya.length){
+    html += `<optgroup label="PIC Lainnya">`;
+    html += lainnya.map(p => `<option value="${esc(p.nama)}" ${sel(p.nama)}>${esc(p.nama)}</option>`).join('');
+    html += `</optgroup>`;
+  }
+  return html;
+}
+
 
 function applyPeriodFilter(rows){
   const month  = (document.getElementById('period-month-select')||{value:'all'}).value;
@@ -4236,6 +4357,7 @@ window.handleStats = function(res){
     renderStats(recomputeStatsFromRows(globalData));
     updateFooter(true);
     loadAdminUsers(); // isi opsi filter PIC dengan nama-nama admin (sheet Users, Role='admin')
+    loadPicNotifList(); // isi opsi dropdown PIC pada form permintaan (sheet PIC_Notif)
     startAutoSync(); // mulai polling lintas user/device setelah data awal berhasil dimuat
   }
   else { renderDemoData(); showToast('Error mengambil data','error'); updateFooter(false); }
@@ -4274,34 +4396,23 @@ function refreshAllViews(){
 // ── AUTO-SYNC: polling silent ke Apps Script setiap AUTO_SYNC_INTERVAL_MS ──
 // "Silent" artinya tanpa overlay loading & tanpa toast setiap kali sukses, supaya tidak
 // mengganggu user yang sedang bekerja di dashboard.
+// [FIX] Sebelumnya polling ini memakai GET/JSONP (<script src>), yang di sebagian
+// jaringan (mis. proxy/firewall korporat) bisa di-cache secara agresif sehingga
+// dashboard tidak pernah melihat perubahan data terbaru dari Google Sheets — baik
+// perubahan lewat aplikasi maupun yang diedit manual langsung di Sheets — walau
+// sudah menunggu lama dengan tab aktif. Sekarang memakai POST via XHR (postToAppsScript),
+// konsisten dengan jalur tulis data yang sudah terbukti reliabel di codebase ini.
 function loadDataSilent(){
   if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('script.google.com')===-1) return; // mode demo: tidak ada server utk di-poll
   if(isUserCurrentlyEditing()) return; // tunda satu putaran polling kalau user sedang mengetik/modal terbuka
   if(isPushingLocalEdit) return; // hindari race condition dengan edit yang baru saja kita kirim sendiri
 
-  // Callback UNIK per poll (bukan nama tetap 'handleStatsSilent') supaya setiap
-  // request bisa membawa timestamp pengirimannya sendiri lewat closure — dipakai
-  // untuk membuang respons basi di handleStatsSilentResult (lihat catatan di atas).
   const sentAt = Date.now();
-  const callbackName = 'statsCb_' + sentAt + '_' + Math.floor(Math.random()*100000);
-  const s = document.createElement('script');
-  s.dataset.autoSync = '1';
-
-  function cleanup(){
-    if(document.head.contains(s)) s.remove();
-    delete window[callbackName];
-  }
-  window[callbackName] = function(res){
-    cleanup();
-    handleStatsSilentResult(res, sentAt);
-  };
-
-  const scriptUrl = `${APPS_SCRIPT_URL}?action=getStats&callback=${callbackName}&_=${sentAt}`;
-  s.src = scriptUrl;
-  s.onerror = ()=>{ cleanup(); }; // gagal diam-diam, coba lagi di putaran polling berikutnya
-  document.head.appendChild(s);
-  setTimeout(cleanup, AUTO_SYNC_INTERVAL_MS - 500);
+  postToAppsScript({ action: 'getStats' })
+    .then(res => { handleStatsSilentResult(res, sentAt); })
+    .catch(()=>{ /* gagal diam-diam, coba lagi di putaran polling berikutnya */ });
 }
+
 
 function handleStatsSilentResult(res, sentAt){
   if(!(res && res.success)) return;
@@ -4852,9 +4963,16 @@ function renderTable(rows, tbodyId='req-tbody'){
       ? `<input type="date" class="cell-edit-date" value="${tglSelesaiRaw}" onchange="updateRowField('${rid}','Tanggal Selesai',this.value,this)"/>`
       : `<span style="font-size:11.5px;color:${tglSelesaiRaw?'var(--text)':'var(--muted)'};">${tglSelesaiRaw?fmtTglID(tglSelesaiRaw):'–'}</span>`;
 
-    // Kolom PIC: admin bisa isi/ubah nama penanggung jawab, user lain hanya melihat
+    // Kolom PIC: admin bisa pilih nama PIC dari dropdown (sumber: sheet PIC_Notif),
+    // user lain hanya melihat teks. Dropdown diprioritaskan menampilkan PIC yang
+    // terdaftar untuk Jenis Layanan baris ini, diikuti PIC lain sebagai cadangan,
+    // supaya tetap fleksibel (mis. PIC dari layanan lain ikut menangani sesekali).
+    // Opsi "(Kosongkan)" tetap tersedia, dan nilai PIC lama yang sudah tersimpan
+    // TETAP ditampilkan sebagai opsi terpilih meski namanya sudah tidak/belum ada
+    // di sheet PIC_Notif (mis. PIC lama yang sudah dihapus dari daftar), supaya
+    // data yang sudah ada tidak pernah hilang/berubah diam-diam hanya karena dropdown ini.
     const picCell = admin
-      ? `<input type="text" class="cell-edit-text" placeholder="Nama PIC..." value="${picRaw.replace(/"/g,'&quot;')}" onblur="updateRowField('${rid}','PIC',this.value,this)" onkeydown="if(event.key==='Enter'){this.blur();}"/>`
+      ? `<select class="cell-edit-text" onchange="updateRowField('${rid}','PIC',this.value,this)">${renderPicDropdownOptions(picRaw, r['Jenis Layanan'])}</select>`
       : `<span style="font-size:11.5px;color:var(--muted);">${picRaw||'–'}</span>`;
 
     // Kolom Biaya: admin bisa edit nilai rupiah langsung, user lain hanya melihat badge
@@ -4874,9 +4992,9 @@ function renderTable(rows, tbodyId='req-tbody'){
       <td>${biayaCell}</td>
       <td style="font-size:11.5px;color:var(--muted);">${r['Dibuat']||'–'}</td>
       <td style="${tglDibutuhkanStyle}"><i class="fas fa-calendar-check" style="font-size:10px;margin-right:3px;"></i>${tglDibutuhkan}${deadlineTagHTML(dl)}</td>
-      <td>${statusCell}</td>
       <td>${tglSelesaiCell}</td>
       <td>${picCell}</td>
+      <td>${statusCell}</td>
       <td><button onclick='showDetailModal(${JSON.stringify(r)})' style="color:var(--primary-light);font-size:11.5px;font-weight:600;border:none;background:none;cursor:pointer;">Detail</button></td>
     </tr>`;
   }).join('');
@@ -7465,18 +7583,19 @@ function initAuthUI(){
     const periodToggleBtn = document.querySelector('.period-toggle-btn');
     if(periodToggleBtn) periodToggleBtn.style.display = 'none';
 
-    // ── Sembunyikan semua section chart & data di panel-utama yang tidak relevan ──
+    // ── Sembunyikan section chart & data di panel-utama yang tidak relevan untuk Pegawai ──
+    // Catatan: 'section-svc-head' & 'svc-grid' (chart per Jenis Layanan) SENGAJA TIDAK
+    // disembunyikan — Pegawai tetap melihat chart ini, namun kartunya sudah otomatis
+    // terfilter ke PEGAWAI_ALLOWED_LAYANAN saja lewat visibleSvcConfig() (lihat renderStats()).
     const hideIds = [
-      'section-svc-head',            // Permintaan per Jenis Layanan (header)
-      'svc-grid',                    // Permintaan per Jenis Layanan (cards)
       'section-bidang-head',         // Permintaan per Bidang (header)
       'bidang-grid',                 // Permintaan per Bidang (cards)
       'section-trend-donut',         // Tren + Donut Status
       'section-bar-top',             // Bar Bidang Stacked + Top Pemohon
       'section-biaya-bidang',        // Biaya per Bidang
       'section-gauge',               // Lama Pemenuhan per Bidang (speedometer)
-      'section-konsumsi-khusus',     // Konsumsi Khusus per Bidang
-      'section-konsumsi-khusus-biaya', // Biaya Konsumsi Khusus per Bidang
+      'section-konsumsi-khusus',     // Konsumsi Khusus per Bidang (Konsumsi Khusus tidak diizinkan utk Pegawai)
+      'section-konsumsi-khusus-biaya', // Biaya Konsumsi Khusus per Bidang (idem)
     ];
     hideIds.forEach(id => {
       const el = document.getElementById(id);
