@@ -189,7 +189,7 @@
     .tab-panel.active{display:block;}
 
     /* STAT CARDS — kartu KPI terang ala financial dashboard, warna diambil dari --glow per kartu */
-    .stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px;}
+    .stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;}
     .stat-card{--glow:56,189,248;background:#fff;
       border-radius:16px;padding:18px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:1px solid var(--border);
       box-shadow:0 1px 3px rgba(17,24,39,.05);transition:all .25s;cursor:default;isolation:isolate;}
@@ -221,6 +221,24 @@
 
     /* SERVICE CARDS */
     .svc-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:20px;}
+    .svc-chart-row{display:grid;grid-template-columns:2.2fr 1fr;gap:16px;margin-bottom:20px;align-items:stretch;}
+    .svc-chart-card{padding:18px 20px;}
+    .svc-biaya-card{padding:18px 20px;display:flex;flex-direction:column;}
+    .svc-biaya-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;}
+    .svc-biaya-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
+    .svc-biaya-amount{font-size:clamp(18px,3vw,24px);font-weight:700;color:var(--text);margin:2px 0 2px;}
+    .svc-biaya-sub{font-size:11px;color:var(--muted);}
+    .svc-biaya-pct{font-size:20px;font-weight:700;color:#eab308;text-align:center;}
+    .svc-biaya-pct-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:2px;}
+    /* ── Donut "Ringkasan Biaya": identik dengan .donut-rel/.donut-center (Status Permintaan) ── */
+    .gauge-rel{position:relative;width:145px;height:145px;margin:6px auto 2px;}
+    .gauge-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+    .gauge-center h3{font-size:20px;font-weight:700;color:var(--text);}
+    .gauge-center p{font-size:10px;color:var(--muted);}
+    .gauge-badge{display:block;width:fit-content;margin:8px auto 0;
+      background:#16a34a;color:#fff;font-size:10.5px;font-weight:700;padding:3px 12px;border-radius:20px;
+      white-space:nowrap;box-shadow:0 2px 6px rgba(22,163,74,.35);}
+    @media(max-width:900px){.svc-chart-row{grid-template-columns:1fr;}}
     .svc-card{background:#fff;border-radius:14px;padding:15px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;border:1px solid var(--border);cursor:pointer;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.04);}
     .svc-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1);border-color:transparent;}
     .svc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:8px;}
@@ -343,8 +361,8 @@
 
     /* ── TAB LAYANAN ── */
     .layanan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-    .layanan-header h2{font-size:18px;font-weight:700;}
-    .layanan-filter{display:flex;gap:8px;}
+    .layanan-header h2{font-size:18px;font-weight:700;color:#fff;}
+    .layanan-header p{color:rgba(255,255,255,.65)!important;}
     .filter-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
     .filter-btn.active{background:var(--primary-light);color:#fff;border-color:var(--primary-light);}
     .layanan-full-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
@@ -369,7 +387,8 @@
 
     /* ── TAB BIDANG ── */
     .bidang-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-    .bidang-header h2{font-size:18px;font-weight:700;}
+    .bidang-header h2,.bidang-header #sd-title{font-size:18px;font-weight:700;color:#fff;}
+    .bidang-header p{color:rgba(255,255,255,.65)!important;}
     .bidang-full-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
     .bidang-big-card{background:#fff;border-radius:14px;padding:22px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05);}
     .bbc-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
@@ -1339,11 +1358,6 @@ function logout(){
           <div class="stat-icon"><i class="fas fa-hourglass-half" style="color:#fb7185;"></i></div>
           <div class="stat-info"><p>Menunggu</p><h3 id="s-menunggu">–</h3><div class="stat-change down" id="s-menunggu-lbl">Memuat...</div></div>
         </div>
-        <div class="stat-card biaya" style="grid-column:span 1;--glow:217,119,6;">
-          <span class="hud-corner hud-tl"></span><span class="hud-corner hud-br"></span>
-          <div class="stat-icon"><i class="fas fa-wallet" style="color:#fbbf24;"></i></div>
-          <div class="stat-info"><p>Total Biaya</p><h3 id="s-biaya" style="font-size:clamp(13px,3.6vw,20px);">–</h3><div class="stat-change neu" id="s-biaya-lbl">Memuat...</div></div>
-        </div>
         <div class="stat-card" style="--glow:99,102,241;">
           <span class="hud-corner hud-tl"></span><span class="hud-corner hud-br"></span>
           <div class="stat-icon"><i class="fas fa-gauge-high" style="color:#a5b4fc;"></i></div>
@@ -1351,12 +1365,28 @@ function logout(){
         </div>
       </div>
 
-      <!-- SERVICE CARDS -->
+      <!-- SERVICE CHART + RINGKASAN BIAYA -->
       <div class="sec-head" id="section-svc-head">
-        <div class="sec-title"><i class="fas fa-th" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Jenis Layanan</div>
+        <div class="sec-title"><i class="fas fa-chart-bar" style="color:var(--primary-light);margin-right:6px;"></i>Permintaan per Jenis Layanan</div>
         <a class="see-all" onclick="switchTab('layanan',null)">Lihat Semua →</a>
       </div>
-      <div class="svc-grid" id="svc-grid"></div>
+      <div class="svc-chart-row" id="svc-grid">
+        <div class="card svc-chart-card">
+          <div class="chart-wrap" style="height:260px;"><canvas id="svcChart"></canvas></div>
+        </div>
+        <div class="card svc-biaya-card">
+          <div class="svc-biaya-title"><i class="fas fa-circle-dollar-to-slot" style="color:#eab308;margin-right:6px;"></i>Ringkasan Biaya</div>
+          <div class="svc-biaya-label">Total Biaya</div>
+          <div class="svc-biaya-amount" id="sb-total-biaya">Rp 0,-</div>
+          <div class="svc-biaya-sub" id="sb-total-count">dari 0 permintaan</div>
+          <div class="gauge-rel">
+            <canvas id="svcBiayaDonut"></canvas>
+            <div class="gauge-center"><h3 id="sb-pct">0%</h3><p>Terpakai</p></div>
+          </div>
+          <div class="gauge-badge" id="sb-total-count-badge">0 permintaan</div>
+          <div class="svc-biaya-pct-sub">dari estimasi <span id="sb-estimasi">Rp 0,-</span></div>
+        </div>
+      </div>
 
       <!-- BIDANG CARDS -->
       <div class="sec-head" id="section-bidang-head">
@@ -1703,12 +1733,18 @@ function logout(){
         <div>
           <h2><i class="fas fa-check-circle" style="color:var(--primary-light);margin-right:8px;"></i>Persetujuan Permintaan</h2>
           <p style="font-size:12px;color:var(--muted);margin-top:4px;">Alur: <b>Dibuat Pemohon</b> → Review <b>Supervisor Administrasi</b> & <b>Supervisor Senior Administrasi</b> → Disetujui <b>Manager Administrasi</b></p>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:2px;">Khusus <b>Konsumsi Khusus</b>, <b>Konsumsi Kegiatan</b> &amp; <b>Fasilitas Kerja</b>: <b>Manager Bidang</b> pengaju menyetujui lebih dahulu, sebelum masuk jalur Administrasi.</p>
         </div>
         <div class="appr-role-badge" id="appr-role-badge">Role: –</div>
       </div>
 
       <!-- Ringkasan tahapan -->
       <div class="appr-stage-grid">
+        <div class="appr-stage-card">
+          <div class="appr-stage-icon" style="background:#f5f3ff;color:#7c3aed;"><i class="fas fa-user-tie"></i></div>
+          <div class="appr-stage-num" id="appr-cnt-manager-bidang">–</div>
+          <div class="appr-stage-lbl">Menunggu Persetujuan Manager Bidang</div>
+        </div>
         <div class="appr-stage-card">
           <div class="appr-stage-icon" style="background:#fff7ed;color:#f97316;"><i class="fas fa-user-check"></i></div>
           <div class="appr-stage-num" id="appr-cnt-supervisor">–</div>
@@ -1745,7 +1781,7 @@ function logout(){
         </div>
         <div class="table-scroll"><table class="req-table">
           <thead>
-            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Dibuat</th><th>Supervisor Administrasi</th><th>Supervisor Senior Administrasi</th><th>Manager Administrasi</th><th>Status</th></tr>
+            <tr><th>ID</th><th>Layanan</th><th>Pemohon</th><th>Bidang</th><th>Dibuat</th><th>Manager Bidang</th><th>Supervisor Administrasi</th><th>Supervisor Senior Administrasi</th><th>Manager Administrasi</th><th>Status</th></tr>
           </thead>
           <tbody id="appr-tbody"></tbody>
         </table></div>
@@ -2417,6 +2453,10 @@ function processAddRow(payload) {
     'Status','Prioritas','Biaya','Deskripsi','Jumlah Manpower','Telepon','Email',
     'Tanggal Dibutuhkan','Tanggal Selesai','PIC',
     'Lampiran','Dibuat','Timestamp',
+    // ── Tahap tambahan: Persetujuan Manager Bidang, HANYA berlaku untuk layanan
+    //    Konsumsi Khusus, Konsumsi Kegiatan, dan Fasilitas Kerja (lihat MANAGER_BIDANG_LAYANAN
+    //    di dashboard). Untuk layanan lain kolom ini tetap ada di sheet tapi tidak pernah dipakai.
+    'Approval Manager Bidang','Catatan Manager Bidang',
     'Review Supervisor Administrasi','Review Supervisor Senior Administrasi','Approval Manager Administrasi'
   ];
   requiredCols.forEach(function(col) {
@@ -3580,7 +3620,7 @@ let lastLocalWriteAt = 0; // timestamp() saat penyimpanan lokal (Simpan Biaya/St
 let globalData = [];
 let layananPage = 1;
 const PAGE_SIZE = 15;
-let trendChart, donutChart, barChart, bidangBarChart, bidangDonutChart, biayaBidangChart, bidangBiayaChart, bidangBiayaAvgChart, konsumsiKhususChart, konsumsiKhususBiayaChart, sdChart, sdChartBiaya, sdKkChart, sdKkBiayaBulanChart;
+let trendChart, donutChart, barChart, svcChart, svcBiayaDonutChart, bidangBarChart, bidangDonutChart, biayaBidangChart, bidangBiayaChart, bidangBiayaAvgChart, konsumsiKhususChart, konsumsiKhususBiayaChart, sdChart, sdChartBiaya, sdKkChart, sdKkBiayaBulanChart;
 // masterDataAll = seluruh data yang boleh diakses user (sudah difilter per-bidang login), SEBELUM filter periode.
 // globalData    = subset dari masterDataAll setelah filter Bulan/Tahun diterapkan — inilah yang dipakai seluruh chart/tabel.
 let masterDataAll = [];
@@ -3842,6 +3882,62 @@ function initCharts() {
                y:{stacked:true,beginAtZero:true,grace:'15%',grid:{color:'#e6ecf5'},border:{display:false},ticks:{font:{size:10},color:'#94a3b8'}}}}
   });
 
+  // ── Chart "Permintaan per Jenis Layanan" (Dashboard utama) ──
+  // Bar = jumlah permintaan (sumbu kiri), Line = total biaya per layanan (sumbu kanan).
+  const svcCtx = document.getElementById('svcChart').getContext('2d');
+  svcChart = new Chart(svcCtx,{
+    data:{labels:visibleSvcConfig().map(c=>c.key),
+      datasets:[
+        {type:'bar',label:'Jumlah Permintaan',data:visibleSvcConfig().map(()=>0),
+          backgroundColor:ctx=>neuGrad(ctx,'#2563eb'),borderRadius:8,borderSkipped:false,
+          barPercentage:.55,categoryPercentage:.7,yAxisID:'y',
+          datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,anchor:'end',align:'top',offset:4,
+            color:'#334155',font:{size:10,weight:'700'},formatter:v=>v}},
+        {type:'line',label:'Total Biaya (Rp)',data:visibleSvcConfig().map(()=>0),
+          borderColor:'#eab308',backgroundColor:'#eab308',borderWidth:2,tension:.3,
+          pointBackgroundColor:'#eab308',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:4,
+          yAxisID:'y1',
+          datalabels:{display:ctx=>ctx.dataset.data[ctx.dataIndex]>0,anchor:'end',align:'bottom',offset:6,
+            backgroundColor:'#fef9c3',borderRadius:4,padding:{top:2,bottom:2,left:5,right:5},
+            color:'#854d0e',font:{size:9,weight:'700'},formatter:v=>'Rp '+(v>=1000?(v/1000).toFixed(0)+' rb':v)}}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},color:'#64748b',boxWidth:9,boxHeight:9,usePointStyle:true,pointStyle:'circle'}},
+      tooltip:{callbacks:{label:ctx=>{
+        if(ctx.dataset.yAxisID==='y1') return ' Total Biaya: '+formatRupiahReal(ctx.parsed.y);
+        return ' '+ctx.dataset.label+': '+ctx.parsed.y;
+      }}}},
+      scales:{
+        x:{grid:{display:false},border:{display:false},ticks:{font:{size:9.5},color:'#94a3b8',maxRotation:0,autoSkip:false}},
+        y:{position:'left',beginAtZero:true,grace:'20%',grid:{color:'#e6ecf5'},border:{display:false},
+          title:{display:true,text:'Jumlah',font:{size:10,weight:'600'},color:'#94a3b8'},
+          ticks:{font:{size:10},color:'#94a3b8',precision:0}},
+        y1:{position:'right',beginAtZero:true,grace:'20%',grid:{display:false},border:{display:false},
+          title:{display:true,text:'Total Biaya (Rp)',font:{size:10,weight:'600'},color:'#eab308'},
+          ticks:{font:{size:9},color:'#eab308',callback:v=>{
+            if(v>=1000000) return (v/1000000)+'jt';
+            if(v>=1000) return (v/1000)+'rb';
+            return v;
+          }}}
+      }}
+  });
+
+  // ── Donut "Ringkasan Biaya" (progress Total Biaya terhadap estimasi maksimum) ──
+  // Bentuk & konfigurasi PERSIS mengikuti pola donutChart ("Status Permintaan") di atas:
+  // donut penuh 360°, borderRadius:8, spacing:4, cutout:'70%' — tanpa circumference/rotation
+  // custom (kombinasi itu yang menyebabkan render arc rusak/patah di sebagian browser).
+  const svcBiayaCtx = document.getElementById('svcBiayaDonut').getContext('2d');
+  svcBiayaDonutChart = new Chart(svcBiayaCtx,{type:'doughnut',
+    data:{labels:['Terpakai','Sisa Estimasi'],
+      datasets:[{data:[0,1],
+        backgroundColor:ctx=>neuArcGrad(ctx,['#22c55e','#e2e8f0'][ctx.dataIndex]),
+        borderWidth:0,borderRadius:8,spacing:4,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
+      plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+formatRupiahReal(ctx.parsed)}},
+      datalabels:{display:false}}}
+  });
+
   // Bidang charts
   const bbCtx = document.getElementById('bidangBarChart').getContext('2d');
   bidangBarChart = new Chart(bbCtx,{type:'bar',
@@ -3982,8 +4078,14 @@ function isAdminUser(){
 
 // ── ROLE UNTUK WORKFLOW PERSETUJUAN ──
 // Role disimpan di kolom "Role" pada sheet Users. Nilai yang dikenali:
-// 'admin', 'bidang', 'supervisor' (Supervisor Administrasi),
+// 'admin', 'bidang', 'manager_bidang' (Manager per-Bidang, lihat isManagerBidang()),
+// 'supervisor' (Supervisor Administrasi),
 // 'senior_admin' (Supervisor Senior Administrasi), 'manager' (Manager Administrasi).
+// User dengan Role='manager_bidang' HARUS punya kolom 'Bidang' terisi (sama seperti
+// role 'bidang'), karena itu menentukan bidang mana yang boleh mereka approve.
+// Berbeda dari supervisor/senior_admin/manager, manager_bidang TIDAK mendapat akses
+// lihat lintas-bidang (bukan bagian APPROVAL_ROLES_FULL_ACCESS) — mereka hanya melihat
+// data bidangnya sendiri, sama seperti role 'bidang' biasa (lihat filterRowsForUser()).
 // Hanya admin sejati (isSuperAdmin) yang bisa bertindak di SEMUA tahap (override/testing).
 // Supervisor Administrasi hanya bisa approve/reject di tahap "Review Supervisor Administrasi",
 // Supervisor Senior Administrasi hanya di tahap "Review Supervisor Senior Administrasi",
@@ -3997,6 +4099,18 @@ function getUserRole(){
 function isSupervisor(){ return isSuperAdmin() || getUserRole()==='supervisor'; }
 function isSeniorAdmin(){ return isSuperAdmin() || getUserRole()==='senior_admin'; }
 function isManagerAdmin(){ return isSuperAdmin() || getUserRole()==='manager'; }
+
+// ── ROLE MANAGER BIDANG (approval tahap-0, khusus 3 jenis layanan tertentu) ──
+// Setiap Manager Bidang hanya berwenang menyetujui permintaan dari BIDANG-nya sendiri
+// (kolom 'Bidang' pada user, diisi sama seperti user role 'bidang' di bidang tsb).
+// Contoh: user dengan Role='manager_bidang' & Bidang='HAR' hanya bisa approve
+// permintaan Bidang='HAR'. isSuperAdmin() tetap boleh override di semua bidang.
+function isManagerBidang(bidangRow){
+  if(isSuperAdmin()) return true;
+  if(getUserRole()!=='manager_bidang') return false;
+  const myBidang = (window.AUTH_USER && window.AUTH_USER.bidang || '').toString().toUpperCase();
+  return myBidang === (bidangRow||'').toString().toUpperCase();
+}
 
 // ── ROLE PEGAWAI ──
 // Role 'pegawai' hanya dapat melihat layanan tertentu saja (read-only terbatas).
@@ -4495,21 +4609,34 @@ function renderStats(s){
   document.getElementById('s-menunggu-lbl').textContent= `${s.menunggu||0} menunggu aksi`;
   if(typeof renderNotifPanel==='function') renderNotifPanel();
 
-  // Service cards
-  const svcEl = document.getElementById('svc-grid');
-  svcEl.innerHTML='';
-  visibleSvcConfig().forEach(cfg=>{
-    const cnt=(s.perLayanan&&s.perLayanan[cfg.key])||0;
-    const pct=tot?((cnt/tot)*100).toFixed(1):0;
-    const biayaStr=cfg.biayaMin===0?'Gratis':`${formatBiaya(cfg.biayaMin)}–${formatBiaya(cfg.biayaMax)}`;
-    svcEl.innerHTML+=`<div class="svc-card" onclick="showLayananSummary('${cfg.key}')">
-      <div class="svc-icon" style="background:${cfg.bg};"><i class="fas ${cfg.icon}" style="color:${cfg.color};"></i></div>
-      <h4>${cfg.key}</h4>
-      <div class="cnt" style="color:${cfg.color};">${cnt}</div>
-      <div class="pct">(${pct}%)</div>
-      <div class="svc-biaya"><i class="fas fa-tag" style="font-size:8px;"></i> ${biayaStr}</div>
-    </div>`;
-  });
+  // ── Chart "Permintaan per Jenis Layanan" + panel "Ringkasan Biaya" ──
+  const svcRows = s.fullData || s.recent || [];
+  const svcCfgList = visibleSvcConfig();
+  const svcCounts = svcCfgList.map(cfg => (s.perLayanan && s.perLayanan[cfg.key]) || 0);
+  const svcBiayaPerLayanan = svcCfgList.map(cfg =>
+    svcRows.filter(r => r['Jenis Layanan'] === cfg.key).reduce((sum, r) => sum + (Number(r['Biaya']) || 0), 0)
+  );
+
+  svcChart.data.labels = svcCfgList.map(c => c.key);
+  svcChart.data.datasets[0].data = svcCounts;
+  svcChart.data.datasets[1].data = svcBiayaPerLayanan;
+  svcChart.update();
+
+  // Panel Ringkasan Biaya: total biaya keseluruhan vs estimasi biaya maksimum
+  // (jumlah biayaMax x jumlah permintaan tiap layanan — acuan batas atas kewajaran biaya).
+  const totalBiayaSvc = svcBiayaPerLayanan.reduce((a, b) => a + b, 0);
+  const estimasiMaks = svcCfgList.reduce((sum, cfg, i) => sum + (cfg.biayaMax * svcCounts[i]), 0);
+  const pctBiaya = estimasiMaks ? Math.min(100, (totalBiayaSvc / estimasiMaks) * 100) : 0;
+
+  document.getElementById('sb-total-biaya').textContent = formatRupiahReal(totalBiayaSvc);
+  document.getElementById('sb-total-count').textContent = `dari ${tot} permintaan`;
+  document.getElementById('sb-pct').textContent = `${pctBiaya.toFixed(1)}%`;
+  document.getElementById('sb-total-count-badge').textContent = `${tot} permintaan`;
+  document.getElementById('sb-estimasi').textContent = formatRupiahReal(estimasiMaks);
+
+  svcBiayaDonutChart.data.datasets[0].data = [totalBiayaSvc, Math.max(0, estimasiMaks - totalBiayaSvc)];
+  svcBiayaDonutChart.update();
+
 
   // Bidang cards
   const bidEl = document.getElementById('bidang-grid');
@@ -4584,10 +4711,6 @@ function renderStats(s){
   renderTable(s.recent||[]);
   globalData = s.fullData || s.recent || [];
 
-  // Update total biaya stat card setelah globalData diisi
-  const totalBiayaAll = globalData.reduce((sum,r)=>sum+(r['Biaya']||0),0);
-  document.getElementById('s-biaya').textContent = formatRupiahReal(totalBiayaAll);
-  document.getElementById('s-biaya-lbl').textContent = `dari ${globalData.length} permintaan`;
   document.getElementById('last-sync').textContent=new Date().toLocaleTimeString('id-ID');
 
   updateBiayaBidangCharts();
@@ -5314,31 +5437,53 @@ function renderCalendarDayDetail(dateStr){
 }
 
 // ── TAB PERSETUJUAN ──
-// Alur: Dibuat Pemohon -> Review Supervisor Administrasi -> Review Supervisor Senior Administrasi -> Approval Manager Administrasi
+// Alur standar: Dibuat Pemohon -> Review Supervisor Administrasi -> Review Supervisor Senior Administrasi -> Approval Manager Administrasi
+// Alur KHUSUS (Konsumsi Khusus, Konsumsi Kegiatan, Fasilitas Kerja):
+//   Dibuat Pemohon -> Persetujuan Manager Bidang (bidang pengaju) -> Review Supervisor Administrasi
+//   -> Review Supervisor Senior Administrasi -> Approval Manager Administrasi
 // Penolakan di tahap manapun langsung menghentikan alur (Status jadi 'Ditolak').
 // CATATAN: nilai 'field' TIDAK diubah karena harus tetap sama dengan nama kolom di Google Sheet ("Data").
 // Hanya 'label' (teks yang ditampilkan ke user) yang diperbarui.
-const APPROVAL_STAGES = [
+const APPROVAL_STAGES_BASE = [
   { field:'Review Supervisor',  noteField:'Catatan Supervisor',   label:'Review Supervisor Administrasi',   roleCheck: isSupervisor,   icon:'fa-user-check', color:'#f97316' },
   { field:'Review Senior Admin', noteField:'Catatan Senior Admin', label:'Review Supervisor Senior Administrasi', roleCheck: isSeniorAdmin,  icon:'fa-user-shield', color:'#2563eb' },
   { field:'Approval Manager',   noteField:'Catatan Manager',      label:'Approval Manager Administrasi',    roleCheck: isManagerAdmin, icon:'fa-user-tie',   color:'#10b981' }
 ];
 
+// Jenis layanan yang WAJIB melalui persetujuan Manager Bidang terlebih dahulu,
+// sebelum masuk ke jalur Administrasi (Supervisor -> Supervisor Senior -> Manager Administrasi).
+const MANAGER_BIDANG_LAYANAN = ['Konsumsi Khusus', 'Konsumsi Kegiatan', 'Fasilitas Kerja'];
+
+// Bangun daftar tahap approval untuk SATU baris permintaan (bergantung Jenis Layanan-nya).
+// Untuk 3 layanan di MANAGER_BIDANG_LAYANAN, tahap "Persetujuan Manager Bidang" disisipkan
+// di paling depan; untuk layanan lain, langsung mulai dari Review Supervisor Administrasi
+// (perilaku lama, tidak berubah).
+function getStagesForRow(r){
+  const jenis = r && r['Jenis Layanan'];
+  if(MANAGER_BIDANG_LAYANAN.indexOf(jenis) === -1) return APPROVAL_STAGES_BASE;
+  const bidangRow = r['Bidang'];
+  return [
+    { field:'Approval Manager Bidang', noteField:'Catatan Manager Bidang', label:'Persetujuan Manager Bidang',
+      roleCheck: function(){ return isManagerBidang(bidangRow); }, icon:'fa-user-tie', color:'#7c3aed' }
+  ].concat(APPROVAL_STAGES_BASE);
+}
+
 // Tentukan tahap yang SEDANG ditunggu untuk sebuah request (null jika sudah selesai/ditolak semua tahap)
 function getCurrentStageIndex(r){
   if(r['Status']==='Ditolak') return -1; // sudah berhenti, tidak ada tahap aktif
-  for(let i=0;i<APPROVAL_STAGES.length;i++){
-    const val = r[APPROVAL_STAGES[i].field];
+  const stages = getStagesForRow(r);
+  for(let i=0;i<stages.length;i++){
+    const val = r[stages[i].field];
     if(!val) return i; // tahap ini belum diisi -> ini tahap yang sedang ditunggu
     if(val==='Ditolak') return -1; // seharusnya sudah ke-set Status Ditolak juga, tapi jaga-jaga
   }
-  return APPROVAL_STAGES.length; // semua tahap sudah Disetujui
+  return stages.length; // semua tahap sudah Disetujui
 }
 
-// ── Cek apakah sebuah permintaan sudah disetujui PENUH oleh SP, SPS, dan Manager Administrasi ──
+// ── Cek apakah sebuah permintaan sudah disetujui PENUH di semua tahap yang berlaku ──
 function isRequestFullyApproved(r){
   if(!r || r['Status']==='Ditolak') return false;
-  return APPROVAL_STAGES.every(stage => r[stage.field] === 'Disetujui');
+  return getStagesForRow(r).every(stage => r[stage.field] === 'Disetujui');
 }
 
 // ── UNDUH FORMULIR PDF (dipanggil dari tombol di modal detail) ──
@@ -5546,6 +5691,10 @@ function generateApprovedFormPDF(r){
 }
 
 function getApprovalRoleLabel(){
+  if(getUserRole()==='manager_bidang'){
+    const bid = (window.AUTH_USER && window.AUTH_USER.bidang) || '–';
+    return `Manager Bidang (${bid})`;
+  }
   if(getUserRole()==='supervisor') return 'Supervisor Administrasi';
   if(getUserRole()==='senior_admin') return 'Supervisor Senior Administrasi';
   if(getUserRole()==='manager') return 'Manager Administrasi';
@@ -5556,7 +5705,8 @@ function getApprovalRoleLabel(){
 // Mini stage-tracker (dipakai di panel Detail permintaan)
 function buildApprovalTrackerHTML(r){
   const idx = getCurrentStageIndex(r);
-  const stepsHTML = APPROVAL_STAGES.map((stage,i)=>{
+  const stages = getStagesForRow(r);
+  const stepsHTML = stages.map((stage,i)=>{
     const val = r[stage.field];
     const noteVal = stage.noteField ? (r[stage.noteField]||'').trim() : '';
     let chip, dotColor;
@@ -5583,14 +5733,18 @@ function renderPersetujuanTab(){
 
   const rows = globalData; // sudah terfilter akses bidang & periode
 
-  let cSupervisor=0, cSenior=0, cManager=0, cDitolak=0;
+  let cManagerBidang=0, cSupervisor=0, cSenior=0, cManager=0, cDitolak=0;
   rows.forEach(r=>{
     const idx = getCurrentStageIndex(r);
-    if(idx===-1) cDitolak++;
-    else if(idx===0) cSupervisor++;
-    else if(idx===1) cSenior++;
-    else if(idx===2) cManager++;
+    const stages = getStagesForRow(r);
+    if(idx===-1){ cDitolak++; return; }
+    const fieldAtIdx = stages[idx] && stages[idx].field;
+    if(fieldAtIdx==='Approval Manager Bidang') cManagerBidang++;
+    else if(fieldAtIdx==='Review Supervisor') cSupervisor++;
+    else if(fieldAtIdx==='Review Senior Admin') cSenior++;
+    else if(fieldAtIdx==='Approval Manager') cManager++;
   });
+  document.getElementById('appr-cnt-manager-bidang').textContent = cManagerBidang;
   document.getElementById('appr-cnt-supervisor').textContent = cSupervisor;
   document.getElementById('appr-cnt-senior').textContent = cSenior;
   document.getElementById('appr-cnt-manager').textContent = cManager;
@@ -5601,8 +5755,9 @@ function renderPersetujuanTab(){
   const actionable = [];
   rows.forEach(r=>{
     const idx = getCurrentStageIndex(r);
-    if(idx>=0 && idx<APPROVAL_STAGES.length){
-      const stage = APPROVAL_STAGES[idx];
+    const stages = getStagesForRow(r);
+    if(idx>=0 && idx<stages.length){
+      const stage = stages[idx];
       if(stage.roleCheck()) actionable.push({row:r, stage, stageIdx:idx});
     }
   });
@@ -5633,8 +5788,14 @@ function renderPersetujuanTab(){
   document.getElementById('appr-tbody').innerHTML = rows.length ? rows.map(r=>{
     const bid = BIDMAP[r['Bidang']]||{bg:'#64748b',light:'#f1f5f9'};
     const idx = getCurrentStageIndex(r);
-    const chip = (stageIdx)=>{
-      const val = r[APPROVAL_STAGES[stageIdx].field];
+    const hasManagerBidang = MANAGER_BIDANG_LAYANAN.indexOf(r['Jenis Layanan']) !== -1;
+    // chipByField: cari status tahap berdasarkan NAMA FIELD kolomnya (bukan index tetap),
+    // karena posisi tahap Manager Bidang hanya ada untuk sebagian layanan.
+    const chipByField = (fieldName)=>{
+      const stages = getStagesForRow(r);
+      const stageIdx = stages.findIndex(s=>s.field===fieldName);
+      if(stageIdx===-1) return `<span class="appr-status-chip na">N/A</span>`; // tahap ini tidak berlaku utk layanan ini
+      const val = r[fieldName];
       if(idx===-1 && !val) return `<span class="appr-status-chip na">–</span>`; // ditolak di tahap sebelumnya
       if(val==='Disetujui') return `<span class="appr-status-chip approved">Disetujui</span>`;
       if(val==='Ditolak') return `<span class="appr-status-chip rejected">Ditolak</span>`;
@@ -5649,12 +5810,13 @@ function renderPersetujuanTab(){
       <td style="font-size:11.5px;">${r['Nama Pemohon']||'–'}</td>
       <td><span style="background:${bid.light};color:${bid.bg};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;">${r['Bidang']||'–'}</span></td>
       <td style="font-size:11px;color:var(--muted);">${r['Dibuat']||'–'}</td>
-      <td>${chip(0)}</td>
-      <td>${chip(1)}</td>
-      <td>${chip(2)}</td>
+      <td>${hasManagerBidang ? chipByField('Approval Manager Bidang') : '<span class="appr-status-chip na">N/A</span>'}</td>
+      <td>${chipByField('Review Supervisor')}</td>
+      <td>${chipByField('Review Senior Admin')}</td>
+      <td>${chipByField('Approval Manager')}</td>
       <td><span class="badge ${stClass}" style="font-size:10px;">${st}</span></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">Belum ada data</td></tr>';
+  }).join('') : '<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted);">Belum ada data</td></tr>';
 
   updateApprovalBadge();
 }
@@ -5666,7 +5828,8 @@ function updateApprovalBadge(){
   let count = 0;
   masterDataAll.forEach(r=>{
     const idx = getCurrentStageIndex(r);
-    if(idx>=0 && idx<APPROVAL_STAGES.length && APPROVAL_STAGES[idx].roleCheck()) count++;
+    const stages = getStagesForRow(r);
+    if(idx>=0 && idx<stages.length && stages[idx].roleCheck()) count++;
   });
   badge.textContent = count;
   const bnBadge = document.getElementById('bn-persetujuan');
@@ -5675,18 +5838,19 @@ function updateApprovalBadge(){
 
 // Kirim keputusan Setuju/Tolak untuk sebuah tahap ke Google Sheets + update tampilan lokal
 function submitApproval(id, field, decision, note){
+  const row = masterDataAll.find(r=>r['ID']===id);
+  if(!row){ showToast('Data tidak ditemukan','error'); return; }
+
   // Guard tambahan (selain filter di UI): pastikan role yang login memang berwenang
-  // di TAHAP yang bersangkutan. Supervisor Administrasi hanya boleh di 'Review Supervisor',
+  // di TAHAP yang bersangkutan. Manager Bidang (pengaju) hanya boleh di 'Approval Manager Bidang'
+  // untuk bidang & jenis layanannya sendiri; Supervisor Administrasi hanya boleh di 'Review Supervisor',
   // Supervisor Senior Administrasi hanya di 'Review Senior Admin',
   // Manager Administrasi hanya di 'Approval Manager'. Admin sejati boleh di semua tahap.
-  const stage = APPROVAL_STAGES.find(s=>s.field===field);
+  const stage = getStagesForRow(row).find(s=>s.field===field);
   if(stage && !stage.roleCheck()){
     showToast('Anda tidak berwenang menyetujui/menolak pada tahap ini','error');
     return;
   }
-
-  const row = masterDataAll.find(r=>r['ID']===id);
-  if(!row){ showToast('Data tidak ditemukan','error'); return; }
 
   const fieldsToUpdate = { [field]: decision };
   row[field] = decision;
